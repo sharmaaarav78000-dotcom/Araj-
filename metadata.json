@@ -1,0 +1,6 @@
+{
+  "name": "ARAJ Dry Fruits & Spices",
+  "description": "Ultra-premium luxury e-commerce experience for Araj Dry Fruits & Spices. Pure, Authentic, and Trusted Since 1985.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
