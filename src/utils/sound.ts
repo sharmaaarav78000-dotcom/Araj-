@@ -6,7 +6,9 @@ let isMuted = false;
 export const toggleAudioMute = (): boolean => {
   isMuted = !isMuted;
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('araj:mute-change', { detail: { isMuted } }));
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('araj:mute-change', { detail: { isMuted } }));
+    }, 0);
   }
   return isMuted;
 };
@@ -36,9 +38,11 @@ export const playLuxuryChime = (type: SoundEffectType = 'click') => {
     const ctx = getAudioContext();
     if (!ctx) return;
 
-    // Dispatch pulse event for UI visualizer
+    // Dispatch pulse event for UI visualizer asynchronously
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('araj:sound-played', { detail: { type } }));
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('araj:sound-played', { detail: { type } }));
+      }, 0);
     }
 
     const now = ctx.currentTime;

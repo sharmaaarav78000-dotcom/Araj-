@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from './ProductCard';
+import { FloatingBadam, FloatingCashew, FloatingPista, FloatingKishmish } from './FloatingDryFruits';
 
 export const DryFruitsSection: React.FC<{ onExploreDryFruits: () => void }> = ({ onExploreDryFruits }) => {
   const { products } = useStore();
@@ -12,9 +13,15 @@ export const DryFruitsSection: React.FC<{ onExploreDryFruits: () => void }> = ({
   ).slice(0, 8);
 
   return (
-    <section id="dry-fruits" className="relative py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+    <section id="dry-fruits" className="relative py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">
       {/* Ambient background gold glow */}
       <div className="absolute top-1/3 right-0 w-96 h-96 rounded-full bg-gradient-to-bl from-[#D4AF37]/15 to-transparent blur-[140px] pointer-events-none" />
+
+      {/* Floating Dry Fruits Accents in Section Atmosphere */}
+      <FloatingBadam className="top-12 -left-6 w-16 sm:w-20 h-20 sm:h-24 opacity-40 hidden md:block" rotate={-15} scale={1.1} delay={0.3} duration={7} />
+      <FloatingCashew className="top-24 right-4 w-18 sm:w-22 h-18 sm:h-22 opacity-40 hidden md:block" rotate={28} scale={1.15} delay={1.2} duration={7.5} />
+      <FloatingPista className="bottom-20 left-8 w-14 sm:w-16 h-16 sm:h-18 opacity-35 hidden md:block" rotate={-20} scale={1.05} delay={2.1} duration={6.8} />
+      <FloatingKishmish className="bottom-28 right-12 w-12 sm:w-14 h-14 sm:h-16 opacity-35 hidden md:block" rotate={18} scale={1.05} delay={0.9} duration={7.2} />
 
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
         <div className="space-y-3 max-w-2xl">

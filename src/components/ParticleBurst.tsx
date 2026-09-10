@@ -37,21 +37,28 @@ export const ParticleBurst: React.FC = () => {
 
   // Sound active pulse timer
   useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
     const handleSoundPlayed = () => {
-      setSoundActive(true);
-      setTimeout(() => setSoundActive(false), 350);
+      setTimeout(() => {
+        setSoundActive(true);
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => setSoundActive(false), 350);
+      }, 0);
     };
 
     const handleMuteChange = (e: Event) => {
       const custom = e as CustomEvent<{ isMuted: boolean }>;
       if (custom.detail) {
-        setIsMuted(custom.detail.isMuted);
+        setTimeout(() => {
+          setIsMuted(custom.detail.isMuted);
+        }, 0);
       }
     };
 
     window.addEventListener('araj:sound-played', handleSoundPlayed);
     window.addEventListener('araj:mute-change', handleMuteChange);
     return () => {
+      if (timer) clearTimeout(timer);
       window.removeEventListener('araj:sound-played', handleSoundPlayed);
       window.removeEventListener('araj:mute-change', handleMuteChange);
     };

@@ -11,14 +11,16 @@ export const triggerParticleBurst = (
   const x = 'clientX' in e ? e.clientX : window.innerWidth / 2;
   const y = 'clientY' in e ? e.clientY : window.innerHeight / 2;
 
-  window.dispatchEvent(
-    new CustomEvent('araj:particle', {
-      detail: {
-        x,
-        y,
-        type: options?.type || 'gold',
-        targetCart: options?.targetCart ?? false,
-      },
-    })
-  );
+  setTimeout(() => {
+    window.dispatchEvent(
+      new CustomEvent('araj:particle', {
+        detail: {
+          x,
+          y,
+          type: options?.type || 'gold',
+          targetCart: options?.targetCart ?? false,
+        },
+      })
+    );
+  }, 0);
 };

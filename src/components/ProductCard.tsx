@@ -22,9 +22,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const wishlisted = isInWishlist(product.id);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
-  // 3D tilt and interactive specular reflection position
+  // Interactive specular reflection position
   const [glarePos, setGlarePos] = useState({ x: 50, y: 50, opacity: 0 });
-  const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -34,16 +33,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const xPct = (x / rect.width) * 100;
     const yPct = (y / rect.height) * 100;
 
-    // Subtle tilt max 5 degrees for ultra-expensive tactile feel
-    const rx = ((y / rect.height) - 0.5) * -8;
-    const ry = ((x / rect.width) - 0.5) * 8;
-
-    setTilt({ rx, ry });
     setGlarePos({ x: xPct, y: yPct, opacity: 0.18 });
   };
 
   const handleMouseLeave = () => {
-    setTilt({ rx: 0, ry: 0 });
     setGlarePos((prev) => ({ ...prev, opacity: 0 }));
   };
 
@@ -95,10 +88,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={() => openProductDetail(product)}
-      style={{
-        transform: `perspective(1000px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
-        transition: 'transform 0.18s ease-out, box-shadow 0.3s ease',
-      }}
       className="group relative rounded-3xl p-4 sm:p-5 glass-card-futuristic hover:border-[#D4AF37]/60 hover:shadow-[0_25px_55px_rgba(212,175,55,0.25)] transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden transform hover:-translate-y-1.5"
     >
       {/* Interactive dynamic specular glare that follows the mouse */}

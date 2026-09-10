@@ -2,12 +2,11 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Plus, Minus, ShoppingCart, Zap, Heart, Star, ShieldCheck, 
-  Leaf, RotateCcw, ChevronDown, ChevronUp, Share2, Check, ZoomIn, Eye, Box, Image as ImageIcon
+  Leaf, RotateCcw, ChevronDown, ChevronUp, Share2, Check, ZoomIn, Eye
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { triggerParticleBurst } from '../utils/effects';
 import { playLuxuryChime } from '../utils/sound';
-import { ThreeDProductViewer } from './ThreeDProductViewer';
 
 export const ProductDetailModal: React.FC = () => {
   const { 
@@ -21,7 +20,6 @@ export const ProductDetailModal: React.FC = () => {
   } = useStore();
 
   const [quantity, setQuantity] = useState(1);
-  const [viewMode, setViewMode] = useState<'3d' | '2d'>('3d');
   const [activeAccordion, setActiveAccordion] = useState<string>('details');
   const [copied, setCopied] = useState(false);
   const [loupeActive, setLoupeActive] = useState(false);
@@ -96,128 +94,79 @@ export const ProductDetailModal: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-start">
             
-            {/* Left: Product Image Showcase with 3D WebGL / 2D High-Res Mode Switcher */}
+            {/* Left: Product Image Showcase with Optical Texture Loupe */}
             <div className="md:col-span-6 flex flex-col items-center">
-              {/* Mode Toggle Controls */}
-              <div className="w-full flex items-center justify-between mb-3">
-                <div className="flex items-center p-1 rounded-xl bg-[#14141E] border border-white/10 text-xs">
-                  <button
-                    onClick={() => setViewMode('3d')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
-                      viewMode === '3d'
-                        ? 'bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] shadow-md'
-                        : 'text-[#DFDACD] hover:text-white'
-                    }`}
-                  >
-                    <Box className="w-3.5 h-3.5" />
-                    <span>3D 360° Studio</span>
-                  </button>
-                  <button
-                    onClick={() => setViewMode('2d')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
-                      viewMode === '2d'
-                        ? 'bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] shadow-md'
-                        : 'text-[#DFDACD] hover:text-white'
-                    }`}
-                  >
-                    <ImageIcon className="w-3.5 h-3.5" />
-                    <span>2D Photo + Loupe</span>
-                  </button>
+              <div
+                ref={imageContainerRef}
+                onMouseEnter={() => setLoupeActive(true)}
+                onMouseLeave={() => setLoupeActive(false)}
+                onMouseMove={handleImageMouseMove}
+                className="relative w-full h-64 sm:h-96 rounded-2xl bg-gradient-to-b from-white via-white to-[#F7F5EE] border border-[#D4AF37]/30 shadow-md p-4 sm:p-6 flex items-center justify-center overflow-hidden group cursor-crosshair select-none"
+              >
+                {/* Floating Discount Pill */}
+                <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 px-2.5 sm:px-3 py-1 rounded-full bg-[#D4AF37] text-[#0A0A0E] text-[10px] sm:text-xs font-black tracking-wider uppercase shadow-md">
+                  {selectedProduct.discountPercentage ? `${selectedProduct.discountPercentage}% OFF` : '50% OFF'}
                 </div>
 
-                <span className="hidden sm:inline font-mono text-[10px] text-[#D4AF37] uppercase tracking-wider">
-                  {viewMode === '3d' ? 'WebGL Interactive' : 'Ultra-HD'}
-                </span>
-              </div>
-
-              {viewMode === '3d' ? (
-                <div className="relative w-full h-80 sm:h-96 rounded-2xl overflow-hidden border border-[#D4AF37]/30 shadow-md">
-                  <ThreeDProductViewer
-                    product={selectedProduct}
-                    className="w-full h-full"
-                  />
-                </div>
-              ) : (
-                <div
-                  ref={imageContainerRef}
-                  onMouseEnter={() => setLoupeActive(true)}
-                  onMouseLeave={() => setLoupeActive(false)}
-                  onMouseMove={handleImageMouseMove}
-                  className="relative w-full h-64 sm:h-96 rounded-2xl bg-gradient-to-b from-white via-white to-[#F7F5EE] border border-[#D4AF37]/30 shadow-md p-4 sm:p-6 flex items-center justify-center overflow-hidden group cursor-crosshair select-none"
+                {/* Wishlist Button */}
+                <button
+                  onClick={handleToggleWishlist}
+                  className={`absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 sm:p-2.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 ${
+                    wishlisted ? 'text-[#E53E3E] bg-[#E53E3E]/20' : 'text-[#DFDACD] hover:text-white'
+                  }`}
                 >
-                  {/* Floating Discount Pill */}
-                  <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 px-2.5 sm:px-3 py-1 rounded-full bg-[#D4AF37] text-[#0A0A0E] text-[10px] sm:text-xs font-black tracking-wider uppercase shadow-md">
-                    {selectedProduct.discountPercentage ? `${selectedProduct.discountPercentage}% OFF` : '50% OFF'}
-                  </div>
+                  <Heart className={`w-4 h-4 ${wishlisted ? 'fill-current' : ''}`} />
+                </button>
 
-                  {/* Wishlist Button */}
-                  <button
-                    onClick={handleToggleWishlist}
-                    className={`absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 sm:p-2.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 ${
-                      wishlisted ? 'text-[#E53E3E] bg-[#E53E3E]/20' : 'text-[#DFDACD] hover:text-white'
-                    }`}
+                {/* Ambient Soft Glow */}
+                <div className="absolute inset-0 bg-radial from-amber-100/40 via-transparent to-transparent pointer-events-none" />
+
+                {/* Main Image */}
+                <img
+                  src={selectedProduct.image}
+                  alt={selectedProduct.name}
+                  className="relative z-10 max-h-full max-w-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.18)]"
+                />
+
+                {/* Interactive Optical Texture Loupe HUD Overlay */}
+                {loupeActive && (
+                  <div
+                    className="absolute pointer-events-none z-30 w-36 h-36 rounded-full border-2 border-[#D4AF37] shadow-[0_0_25px_rgba(212,175,55,0.6)] bg-[#07070A] overflow-hidden hidden sm:block"
+                    style={{
+                      left: loupePos.px - 72,
+                      top: loupePos.py - 72,
+                    }}
                   >
-                    <Heart className={`w-4 h-4 ${wishlisted ? 'fill-current' : ''}`} />
-                  </button>
-
-                  {/* Ambient Soft Glow */}
-                  <div className="absolute inset-0 bg-radial from-amber-100/40 via-transparent to-transparent pointer-events-none" />
-
-                  {/* Main Image */}
-                  <img
-                    src={selectedProduct.image}
-                    alt={selectedProduct.name}
-                    className="relative z-10 max-h-full max-w-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.18)]"
-                  />
-
-                  {/* Interactive Optical Texture Loupe HUD Overlay */}
-                  {loupeActive && (
+                    {/* Magnified Image */}
                     <div
-                      className="absolute pointer-events-none z-30 w-36 h-36 rounded-full border-2 border-[#D4AF37] shadow-[0_0_25px_rgba(212,175,55,0.6)] bg-[#07070A] overflow-hidden hidden sm:block"
+                      className="w-full h-full"
                       style={{
-                        left: loupePos.px - 72,
-                        top: loupePos.py - 72,
+                        backgroundImage: `url(${selectedProduct.image})`,
+                        backgroundPosition: `${loupePos.x}% ${loupePos.y}%`,
+                        backgroundSize: '320%',
+                        backgroundRepeat: 'no-repeat',
                       }}
-                    >
-                      {/* Magnified Image */}
-                      <div
-                        className="w-full h-full"
-                        style={{
-                          backgroundImage: `url(${selectedProduct.image})`,
-                          backgroundPosition: `${loupePos.x}% ${loupePos.y}%`,
-                          backgroundSize: '320%',
-                          backgroundRepeat: 'no-repeat',
-                        }}
-                      />
-                      {/* Optical Crosshair HUD */}
-                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div className="w-full h-[1px] bg-[#D4AF37]/30" />
-                        <div className="h-full w-[1px] bg-[#D4AF37]/30 absolute" />
-                        <div className="w-6 h-6 rounded-full border border-[#D4AF37]/60 absolute" />
-                      </div>
-                      <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-black/80 text-[8px] font-mono text-[#F5DE88] border border-[#D4AF37]/40 tracking-wider">
-                        2.5x ZOOM
-                      </span>
+                    />
+                    {/* Optical Crosshair HUD */}
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      <div className="w-full h-[1px] bg-[#D4AF37]/30" />
+                      <div className="h-full w-[1px] bg-[#D4AF37]/30 absolute" />
+                      <div className="w-6 h-6 rounded-full border border-[#D4AF37]/60 absolute" />
                     </div>
-                  )}
-                </div>
-              )}
+                    <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-black/80 text-[8px] font-mono text-[#F5DE88] border border-[#D4AF37]/40 tracking-wider">
+                      2.5x ZOOM
+                    </span>
+                  </div>
+                )}
+              </div>
 
               {/* Inspection Info Bar */}
               <div className="flex items-center justify-between w-full mt-2 px-1 text-[11px] text-[#A6A295]">
                 <span className="flex items-center gap-1 font-mono text-[10px] text-[#D4AF37]">
-                  {viewMode === '3d' ? (
-                    <>
-                      <Box className="w-3 h-3" /> Click &amp; Drag to Rotate 360° • Pinch / Scroll to Zoom
-                    </>
-                  ) : (
-                    <>
-                      <ZoomIn className="w-3 h-3" /> Hover to Inspect Grain Texture
-                    </>
-                  )}
+                  <ZoomIn className="w-3 h-3" /> Hover to Inspect Grain Texture
                 </span>
                 <span className="text-[10px] font-mono text-[#88847A]">
-                  Munshi Panna Heritage
+                  Stone-Milled Purity • 100%
                 </span>
               </div>
 

@@ -75,3 +75,17 @@ export type CategoryFilter =
 
 export type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'rating' | 'discount' | 'newest';
 
+export interface UserProfile {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  providerId?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  pincode?: string;
+  createdAt: string;
+  lastLoginAt: string;
+}
+

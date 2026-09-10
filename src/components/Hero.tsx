@@ -22,75 +22,12 @@ import { Product } from '../types';
 import { MagneticButton } from './MagneticButton';
 import { triggerParticleBurst } from '../utils/effects';
 import { playLuxuryChime } from '../utils/sound';
+import { FloatingBadam, FloatingCashew, FloatingPista, FloatingKishmish } from './FloatingDryFruits';
 
 interface HeroProps {
   onShopNow: () => void;
   onExplore: () => void;
 }
-
-// Realistic SVG Floating Whole Red Chilli Component matching the video's floating spicy ambiance
-const FloatingChili: React.FC<{
-  className?: string;
-  rotate?: number;
-  scale?: number;
-  delay?: number;
-  duration?: number;
-}> = ({ className = '', rotate = 0, scale = 1, delay = 0, duration = 6 }) => (
-  <motion.div
-    animate={{
-      y: [0, -16, 4, 0],
-      rotate: [rotate, rotate + 9, rotate - 6, rotate],
-      scale: [scale, scale * 1.04, scale * 0.98, scale],
-    }}
-    transition={{
-      duration,
-      repeat: Infinity,
-      ease: 'easeInOut',
-      delay,
-    }}
-    className={`absolute pointer-events-none filter drop-shadow-[0_10px_20px_rgba(220,38,38,0.45)] z-20 ${className}`}
-  >
-    <svg viewBox="0 0 90 120" className="w-full h-full" fill="none">
-      <defs>
-        <linearGradient id="chiliRed" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#F87171" />
-          <stop offset="25%" stopColor="#EF4444" />
-          <stop offset="65%" stopColor="#DC2626" />
-          <stop offset="90%" stopColor="#991B1B" />
-          <stop offset="100%" stopColor="#7F1D1D" />
-        </linearGradient>
-        <linearGradient id="stemGreen" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#84CC16" />
-          <stop offset="60%" stopColor="#4D7C0F" />
-          <stop offset="100%" stopColor="#365314" />
-        </linearGradient>
-      </defs>
-      {/* Stem */}
-      <path
-        d="M 45 18 C 42 10, 36 4, 30 2 C 28 1, 27 3, 29 5 C 32 8, 38 13, 40 19 Z"
-        fill="url(#stemGreen)"
-      />
-      {/* Calyx Crown */}
-      <path
-        d="M 34 20 C 40 17, 52 17, 58 20 C 56 24, 52 26, 46 27 C 40 26, 36 24, 34 20 Z"
-        fill="#3F6212"
-      />
-      {/* Curved Chili Body */}
-      <path
-        d="M 38 22 C 54 22, 64 36, 63 56 C 62 76, 52 95, 41 112 C 40 114, 37 113, 37 111 C 32 96, 29 78, 29 55 C 29 38, 33 22, 38 22 Z"
-        fill="url(#chiliRed)"
-      />
-      {/* Glossy Curved Highlight */}
-      <path
-        d="M 37 28 C 40 42, 39 65, 34 88"
-        stroke="#FECACA"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        opacity="0.55"
-      />
-    </svg>
-  </motion.div>
-);
 
 export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
   const { products, addToCart, openProductDetail, openDistributorModal, setActiveCategory } = useStore();
@@ -103,6 +40,16 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
   const chanaProduct = products.find((p) => p.id === 'SPC-3' || p.name.toLowerCase().includes('chana')) || products[3];
   const garamProduct = products.find((p) => p.id === 'SPC-6' || p.name.toLowerCase().includes('garam')) || products[4];
 
+  // Dry Fruit Product Lookups
+  const badamProduct = products.find((p) => p.id === 'DF-42' || p.name.toLowerCase().includes('badam') || p.name.toLowerCase().includes('almond')) || products[0];
+  const cashewProduct = products.find((p) => p.id === 'DF-40' || p.name.toLowerCase().includes('cashew') || p.name.toLowerCase().includes('kaju')) || products[1];
+  const pistaProduct = products.find((p) => p.id === 'DF-41' || p.name.toLowerCase().includes('pista') || p.name.toLowerCase().includes('pistachio')) || products[2];
+  const kishmishProduct = products.find((p) => p.id === 'DF-46' || p.name.toLowerCase().includes('kishmish') || p.name.toLowerCase().includes('raisin')) || products[3];
+  const giftBoxProduct = products.find((p) => p.id === 'GIFT-19' || p.name.toLowerCase().includes('gifting') || p.category === 'gifting') || badamProduct;
+
+  const [selectedDryFruitId, setSelectedDryFruitId] = useState<string>(badamProduct?.id || 'DF-42');
+  const selectedDryFruitProduct = products.find((p) => p.id === selectedDryFruitId) || badamProduct;
+
   // Carousel State
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -114,6 +61,22 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const slides = [
+    {
+      id: 'royal-dry-fruits',
+      badge: '100% ROYAL SELECTION • AGRA SHAHI MEWE',
+      headingLine1: 'Royal Dry Fruits,',
+      headingLine2: 'Rich & Handpicked',
+      isItalicHighlight: true,
+      hindiTagline: 'शाही मेवों की अनूठी मिठास — शुद्धता, स्वाद और सेहत का शाही वरदान',
+      description: 'Hand-selected AAA Jumbo California Almonds, Mangalorean Cashews, Afghani Kishmish & Persian Pistachios. Triple-sorted and vacuum nitrogen-sealed to retain signature crunch, essential omega fatty acids, and orchard-fresh vitality.',
+      ctaCategory: 'DRY FRUITS',
+      features: [
+        { label: 'AAA+ Jumbo Size Handpicked', icon: 'check' },
+        { label: '100% Natural Crunch', icon: 'check' },
+        { label: 'Vacuum Sealed Crisp Freshness', icon: 'award' },
+      ],
+      type: 'dryfruits',
+    },
     {
       id: 'ground-spices-trio',
       badge: '100% PURE AGRA HERITAGE • ESTD. 1985',
@@ -166,19 +129,21 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
 
   const totalSlides = slides.length;
 
-  const goToSlide = useCallback((newIdx: number, newDir: number = 1) => {
+  const goToSlide = useCallback((newIdx: number, newDir: number = 1, isUserAction: boolean = false) => {
     setDirection(newDir);
     setCurrentSlide((newIdx + totalSlides) % totalSlides);
     setProgress(0);
-    playLuxuryChime('sparkle');
+    if (isUserAction) {
+      playLuxuryChime('sparkle');
+    }
   }, [totalSlides]);
 
-  const handleNext = useCallback(() => {
-    goToSlide(currentSlide + 1, 1);
+  const handleNext = useCallback((isUserAction: boolean = false) => {
+    goToSlide(currentSlide + 1, 1, isUserAction);
   }, [currentSlide, goToSlide]);
 
-  const handlePrev = useCallback(() => {
-    goToSlide(currentSlide - 1, -1);
+  const handlePrev = useCallback((isUserAction: boolean = false) => {
+    goToSlide(currentSlide - 1, -1, isUserAction);
   }, [currentSlide, goToSlide]);
 
   // Autoplay and Progress Timer
@@ -190,11 +155,11 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
 
     progressIntervalRef.current = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 100) {
-          handleNext();
-          return 0;
+        const next = prev + progressIncrement;
+        if (next >= 100) {
+          return 100;
         }
-        return prev + progressIncrement;
+        return next;
       });
     }, intervalStep);
 
@@ -203,7 +168,14 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
         clearInterval(progressIntervalRef.current);
       }
     };
-  }, [isPaused, handleNext]);
+  }, [isPaused]);
+
+  // Trigger slide transition when progress reaches 100% in an effect
+  useEffect(() => {
+    if (progress >= 100) {
+      handleNext(false);
+    }
+  }, [progress, handleNext]);
 
   // Touch Swipe Support
   const touchStartXRef = useRef<number | null>(null);
@@ -219,9 +191,9 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
     const diff = touchStartXRef.current - touchEndX;
 
     if (diff > 50) {
-      handleNext();
+      handleNext(true);
     } else if (diff < -50) {
-      handlePrev();
+      handlePrev(true);
     }
     touchStartXRef.current = null;
     setIsPaused(false);
@@ -286,12 +258,6 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
       onTouchEnd={handleTouchEnd}
       className="relative pt-24 sm:pt-32 pb-8 sm:pb-12 px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden flex flex-col select-none"
     >
-      {/* Floating Chillies Effect in Atmosphere */}
-      <FloatingChili className="top-16 left-6 w-14 h-20 opacity-85 hidden sm:block" rotate={-25} scale={1.1} delay={0.2} duration={5.5} />
-      <FloatingChili className="top-24 right-10 w-16 h-24 opacity-90 hidden md:block" rotate={35} scale={1.2} delay={1.2} duration={6.5} />
-      <FloatingChili className="bottom-28 left-1/3 w-10 h-16 opacity-70 hidden lg:block" rotate={15} scale={0.85} delay={2.0} duration={5.0} />
-      <FloatingChili className="top-1/2 right-1/4 w-12 h-18 opacity-75 hidden xl:block" rotate={-40} scale={0.95} delay={0.8} duration={7.0} />
-
       {/* Ambient background light gradients */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] rounded-full bg-radial from-[#D4AF37]/20 via-transparent to-transparent blur-[110px] sm:blur-[150px] pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] rounded-full bg-radial from-[#E69C36]/15 via-transparent to-transparent blur-[90px] sm:blur-[130px] pointer-events-none" />
@@ -419,6 +385,120 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
             {/* Right Column: Dynamic Visual Stage for Each Slide */}
             <div className="lg:col-span-6 xl:col-span-5 flex justify-center items-center relative">
               
+              {/* SLIDE 0: Royal Dry Fruits & Nuts with Saffron Kheer, Daily Vitality Bowl & Floating Dry Fruits */}
+              {currentData.type === 'dryfruits' && (
+                <div className="relative w-full max-w-lg flex flex-col items-center">
+                  
+                  {/* Radiant Warm Amber & Saffron Sunburst Glow Backdrop */}
+                  <div className="absolute -inset-10 bg-radial from-[#D4AF37]/35 via-[#DD6B20]/20 to-transparent rounded-full blur-2xl animate-pulse pointer-events-none" />
+
+                  {/* Floating Realistic Dry Fruit Accents around the showcase */}
+                  <FloatingBadam className="-top-6 left-2 w-12 sm:w-16 h-16 sm:h-20 opacity-90 hidden sm:block" rotate={-18} scale={1.05} delay={0.2} duration={5.5} />
+                  <FloatingCashew className="-top-8 right-4 w-14 sm:w-18 h-14 sm:h-18 opacity-95 hidden sm:block" rotate={22} scale={1.1} delay={1.0} duration={6.2} />
+                  <FloatingPista className="bottom-2 -left-4 w-11 sm:w-14 h-13 sm:h-16 opacity-85 hidden sm:block" rotate={15} scale={1.0} delay={1.8} duration={5.8} />
+                  <FloatingKishmish className="bottom-0 -right-2 w-10 sm:w-12 h-10 sm:h-12 opacity-90 hidden sm:block" rotate={-25} scale={1.05} delay={0.6} duration={6.5} />
+
+                  <div className="relative w-full h-80 sm:h-96 flex items-center justify-center">
+                    
+                    {/* Left Pairing Dish: Shahi Kheer & Badam Halwa (Garnished with slivered almonds & pistachios) */}
+                    <motion.div
+                      initial={{ opacity: 0, x: -30, scale: 0.9 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.15 }}
+                      className="absolute -left-2 sm:left-0 bottom-4 w-32 sm:w-40 h-32 sm:h-40 rounded-full border-2 border-[#D4AF37]/60 overflow-hidden shadow-2xl z-20 group cursor-pointer"
+                      onClick={() => openProductDetail(badamProduct)}
+                    >
+                      <img
+                        src="https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=400&q=80"
+                        alt="Shahi Kheer & Halwa"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex flex-col items-center justify-end p-2">
+                        <span className="text-[10px] sm:text-xs font-bold text-[#F5DE88]">Shahi Kheer</span>
+                        <span className="text-[9px] text-[#CBD5E0]">Badam &amp; Pista</span>
+                      </div>
+                    </motion.div>
+
+                    {/* Centerpiece: Royal Dry Fruit Pack (Interactive with Badam / Cashew / Pista / Gift Box) */}
+                    <motion.div
+                      key={selectedDryFruitProduct.id}
+                      initial={{ opacity: 0, y: 25, scale: 0.92 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                      onClick={() => openProductDetail(selectedDryFruitProduct)}
+                      className="relative z-30 w-44 sm:w-56 h-64 sm:h-80 rounded-3xl bg-[#14141E] border-2 border-[#D4AF37] p-2.5 shadow-[0_25px_60px_rgba(212,175,55,0.4)] cursor-pointer group"
+                    >
+                      {/* AAA Royal Crunch Seal Badge */}
+                      <div className="absolute -top-3 -right-3 z-40 px-3 py-1 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1 border border-white/40">
+                        <Sparkles className="w-3 h-3 fill-[#0A0A0E]" />
+                        <span>AAA Royal Crunch</span>
+                      </div>
+
+                      <div className="w-full h-full rounded-2xl bg-gradient-to-b from-white via-[#FFFDF7] to-[#FEFCBF]/60 p-2 overflow-hidden flex items-center justify-center relative">
+                        <img
+                          src={selectedDryFruitProduct.image}
+                          alt={selectedDryFruitProduct.name}
+                          className="max-h-full object-contain filter drop-shadow-2xl group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    </motion.div>
+
+                    {/* Right Pairing Dish: Daily Energy Bowl / Fresh Dry Fruit Platter */}
+                    <motion.div
+                      initial={{ opacity: 0, x: 30, scale: 0.9 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.25 }}
+                      className="absolute -right-2 sm:right-0 bottom-4 w-32 sm:w-40 h-32 sm:h-40 rounded-full border-2 border-[#D4AF37]/60 overflow-hidden shadow-2xl z-20 group cursor-pointer"
+                      onClick={() => openProductDetail(cashewProduct)}
+                    >
+                      <img
+                        src="https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=400&q=80"
+                        alt="Daily Energy Bowl"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex flex-col items-center justify-end p-2">
+                        <span className="text-[10px] sm:text-xs font-bold text-[#F5DE88]">Daily Vitality</span>
+                        <span className="text-[9px] text-[#CBD5E0]">Kaju &amp; Kishmish</span>
+                      </div>
+                    </motion.div>
+
+                  </div>
+
+                  {/* Interactive Quick-Select Variety Tabs for Dry Fruits */}
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 z-30">
+                    {[
+                      { label: 'California Badam', prod: badamProduct },
+                      { label: 'Jumbo Kaju', prod: cashewProduct },
+                      { label: 'Royal Pista', prod: pistaProduct },
+                      { label: 'Shahi Gift Box', prod: giftBoxProduct },
+                    ].map((tab) => (
+                      <button
+                        key={tab.label}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedDryFruitId(tab.prod.id);
+                          playLuxuryChime('click');
+                        }}
+                        className={`px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                          selectedDryFruitProduct.id === tab.prod.id
+                            ? 'bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] font-bold shadow-[0_0_12px_rgba(212,175,55,0.4)]'
+                            : 'bg-white/10 hover:bg-white/20 text-[#FAF7EE] border border-white/10'
+                        }`}
+                      >
+                        <span>{tab.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Caption */}
+                  <p className="text-xs text-[#FAF7EE] font-medium text-center mt-2 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#D4AF37] inline-block animate-ping" />
+                    <span>आगरा के शाही मेवे • 100% प्राकृतिक और क्रंची</span>
+                  </p>
+                </div>
+              )}
+
               {/* SLIDE 1: Trio of Indian Ground Spices (Haldi, Mirch center, Dhaniya) */}
               {currentData.type === 'trio' && (
                 <div className="relative w-full max-w-lg flex flex-col items-center">
@@ -675,7 +755,7 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
 
         {/* Previous Slide Navigation Arrow Button */}
         <button
-          onClick={handlePrev}
+          onClick={() => handlePrev(true)}
           aria-label="Previous Slide"
           className="absolute left-0 sm:-left-3 top-1/2 -translate-y-1/2 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#12121A]/85 hover:bg-[#D4AF37] text-[#DFDACD] hover:text-[#0A0A0E] border border-[#D4AF37]/40 flex items-center justify-center backdrop-blur-md transition-all duration-300 shadow-xl cursor-pointer"
         >
@@ -684,7 +764,7 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
 
         {/* Next Slide Navigation Arrow Button */}
         <button
-          onClick={handleNext}
+          onClick={() => handleNext(true)}
           aria-label="Next Slide"
           className="absolute right-0 sm:-right-3 top-1/2 -translate-y-1/2 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#12121A]/85 hover:bg-[#D4AF37] text-[#DFDACD] hover:text-[#0A0A0E] border border-[#D4AF37]/40 flex items-center justify-center backdrop-blur-md transition-all duration-300 shadow-xl cursor-pointer"
         >
@@ -700,7 +780,7 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
           {slides.map((slide, idx) => (
             <button
               key={slide.id}
-              onClick={() => goToSlide(idx, idx > currentSlide ? 1 : -1)}
+              onClick={() => goToSlide(idx, idx > currentSlide ? 1 : -1, true)}
               className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold tracking-wider transition-all duration-300 cursor-pointer ${
                 currentSlide === idx
                   ? 'bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] shadow-[0_0_15px_rgba(212,175,55,0.4)] font-bold'
@@ -709,7 +789,13 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
             >
               <span>0{idx + 1}</span>
               <span className="hidden xs:inline">
-                {idx === 0 ? 'Ground Spices Trio' : idx === 1 ? 'Kashmiri Mirch Special' : "Chef's Blends"}
+                {idx === 0
+                  ? 'Royal Dry Fruits'
+                  : idx === 1
+                  ? 'Ground Spices Trio'
+                  : idx === 2
+                  ? 'Kashmiri Mirch Special'
+                  : "Chef's Blends"}
               </span>
             </button>
           ))}

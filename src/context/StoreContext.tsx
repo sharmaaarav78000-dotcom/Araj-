@@ -1,13 +1,36 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product, CartItem, Order, CustomerInfo, DistributorInquiry } from '../types';
+import { User } from 'firebase/auth';
+import { Product, CartItem, Order, CustomerInfo, DistributorInquiry, UserProfile } from '../types';
 import { PRODUCTS } from '../data/products';
 import { playLuxuryChime } from '../utils/sound';
+import { 
+  auth, 
+  googleProvider, 
+  signInWithPopup, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  fbSignOut, 
+  updateProfile as fbUpdateProfile, 
+  onAuthStateChanged,
+  syncUserProfile,
+  fetchUserProfile
+} from '../lib/firebase';
 
 interface StoreContextType {
   products: Product[];
   cart: CartItem[];
   wishlist: Product[];
   orders: Order[];
+  user: User | null;
+  userProfile: UserProfile | null;
+  isAuthLoading: boolean;
+  authError: string | null;
+  clearAuthError: () => void;
+  loginWithGoogle: () => Promise<boolean>;
+  loginWithEmail: (email: string, password: string) => Promise<boolean>;
+  registerWithEmail: (email: string, password: string, displayName: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  updateCustomerProfile: (data: { phone?: string; address?: string; city?: string; pincode?: string; displayName?: string }) => Promise<void>;
   isCartOpen: boolean;
   isWishlistOpen: boolean;
   isSearchOpen: boolean;
@@ -44,15 +67,10 @@ interface StoreContextType {
   isHamperOpen: boolean;
   isAiChatOpen: boolean;
   isInstallModalOpen: boolean;
-  isPhonePreviewOpen: boolean;
   isDistributorModalOpen: boolean;
-  isThreeDAtelierOpen: boolean;
-  threeDProduct: Product | null;
   scannedProduct: Product | null;
   openScanner: (product?: Product) => void;
   closeScanner: () => void;
-  openThreeDAtelier: (product?: Product) => void;
-  closeThreeDAtelier: () => void;
   openHamper: () => void;
   closeHamper: () => void;
   openAiChat: () => void;
@@ -60,8 +78,6 @@ interface StoreContextType {
   toggleAiChat: () => void;
   openInstallModal: () => void;
   closeInstallModal: () => void;
-  openPhonePreview: () => void;
-  closePhonePreview: () => void;
   openDistributorModal: () => void;
   closeDistributorModal: () => void;
   submitDistributorInquiry: (inquiry: Omit<DistributorInquiry, 'id' | 'createdAt'>) => void;
@@ -116,16 +132,169 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isHamperOpen, setIsHamperOpen] = useState(false);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
-  const [isPhonePreviewOpen, setIsPhonePreviewOpen] = useState(false);
   const [isDistributorModalOpen, setIsDistributorModalOpen] = useState(false);
-  const [isThreeDAtelierOpen, setIsThreeDAtelierOpen] = useState(false);
-  const [threeDProduct, setThreeDProduct] = useState<Product | null>(null);
   const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Firebase Auth State
+  const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // Listen for Firebase Auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        try {
+          const profile = await fetchUserProfile(currentUser.uid);
+          if (profile) {
+            setUserProfile(profile);
+          } else {
+            const synced = await syncUserProfile(currentUser);
+            setUserProfile(synced);
+          }
+        } catch (err) {
+          console.error('Failed to load profile on auth change:', err);
+        }
+      } else {
+        setUserProfile(null);
+      }
+      setIsAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const clearAuthError = () => setAuthError(null);
+
+  // Gmail / Google Login & Registration
+  const loginWithGoogle = async (): Promise<boolean> => {
+    setIsAuthLoading(true);
+    setAuthError(null);
+    try {
+      const res = await signInWithPopup(auth, googleProvider);
+      const profile = await syncUserProfile(res.user);
+      if (profile) setUserProfile(profile);
+      playLuxuryChime('success');
+      showToast(`Welcome, ${res.user.displayName || res.user.email}!`);
+      return true;
+    } catch (err: any) {
+      console.error('Google Auth Error:', err);
+      let msg = 'Google authentication could not be completed.';
+      if (err.code === 'auth/popup-closed-by-user') {
+        msg = 'Sign-in popup was closed before completing.';
+      } else if (err.code === 'auth/cancelled-popup-request') {
+        msg = 'Another login request is already in progress.';
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setAuthError(msg);
+      showToast(msg);
+      return false;
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  // Email / Password Login
+  const loginWithEmail = async (email: string, pass: string): Promise<boolean> => {
+    setIsAuthLoading(true);
+    setAuthError(null);
+    try {
+      const res = await signInWithEmailAndPassword(auth, email.trim(), pass);
+      const profile = await syncUserProfile(res.user);
+      if (profile) setUserProfile(profile);
+      playLuxuryChime('success');
+      showToast(`Welcome back, ${res.user.displayName || res.user.email}!`);
+      return true;
+    } catch (err: any) {
+      console.error('Email Login Error:', err);
+      let msg = 'Failed to sign in. Please verify your email and password.';
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        msg = 'Incorrect email or password. Please try again or sign up.';
+      } else if (err.code === 'auth/invalid-email') {
+        msg = 'Please enter a valid email address.';
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setAuthError(msg);
+      showToast(msg);
+      return false;
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  // Email / Password Registration
+  const registerWithEmail = async (email: string, pass: string, displayName: string): Promise<boolean> => {
+    setIsAuthLoading(true);
+    setAuthError(null);
+    try {
+      const res = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+      if (displayName.trim()) {
+        await fbUpdateProfile(res.user, { displayName: displayName.trim() });
+      }
+      const profile = await syncUserProfile(res.user);
+      if (profile) setUserProfile(profile);
+      playLuxuryChime('success');
+      showToast(`Account created! Welcome to ARAJ, ${displayName.trim() || res.user.email}!`);
+      return true;
+    } catch (err: any) {
+      console.error('Email Registration Error:', err);
+      let msg = 'Could not complete registration.';
+      if (err.code === 'auth/email-already-in-use') {
+        msg = 'An account with this email address already exists. Please login instead.';
+      } else if (err.code === 'auth/weak-password') {
+        msg = 'Password should be at least 6 characters.';
+      } else if (err.code === 'auth/invalid-email') {
+        msg = 'Please provide a valid email address.';
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setAuthError(msg);
+      showToast(msg);
+      return false;
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  // Logout
+  const logout = async () => {
+    try {
+      await fbSignOut(auth);
+      setUser(null);
+      setUserProfile(null);
+      playLuxuryChime('click');
+      showToast('Signed out successfully.');
+    } catch (err) {
+      console.error('Sign-out error:', err);
+    }
+  };
+
+  // Update Customer Profile Details in Firestore
+  const updateCustomerProfile = async (data: { phone?: string; address?: string; city?: string; pincode?: string; displayName?: string }) => {
+    if (!user) return;
+    try {
+      if (data.displayName && data.displayName !== user.displayName) {
+        await fbUpdateProfile(user, { displayName: data.displayName });
+      }
+      const updated = await syncUserProfile(user, { phone: data.phone, address: data.address });
+      if (updated) {
+        setUserProfile(updated);
+        showToast('Profile updated successfully!');
+      }
+    } catch (err) {
+      console.error('Update profile error:', err);
+      showToast('Failed to save profile changes.');
+    }
+  };
 
   useEffect(() => {
     try {
@@ -207,26 +376,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
   const closeInstallModal = () => setIsInstallModalOpen(false);
 
-  const openPhonePreview = () => {
-    setIsPhonePreviewOpen(true);
-    playLuxuryChime('click');
-  };
-  const closePhonePreview = () => setIsPhonePreviewOpen(false);
-
   const openDistributorModal = () => {
     setIsDistributorModalOpen(true);
     playLuxuryChime('click');
   };
   const closeDistributorModal = () => setIsDistributorModalOpen(false);
-
-  const openThreeDAtelier = (product?: Product) => {
-    setThreeDProduct(product || products[0] || null);
-    setIsThreeDAtelierOpen(true);
-    playLuxuryChime('sparkle');
-  };
-  const closeThreeDAtelier = () => {
-    setIsThreeDAtelierOpen(false);
-  };
 
   const submitDistributorInquiry = (inquiryData: Omit<DistributorInquiry, 'id' | 'createdAt'>) => {
     const newInquiry: DistributorInquiry = {
@@ -357,6 +511,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         cart,
         wishlist,
         orders,
+        user,
+        userProfile,
+        isAuthLoading,
+        authError,
+        clearAuthError,
+        loginWithGoogle,
+        loginWithEmail,
+        registerWithEmail,
+        logout,
+        updateCustomerProfile,
         isCartOpen,
         isWishlistOpen,
         isSearchOpen,
@@ -376,17 +540,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         isInstallModalOpen,
         openInstallModal,
         closeInstallModal,
-        isPhonePreviewOpen,
-        openPhonePreview,
-        closePhonePreview,
         isDistributorModalOpen,
         openDistributorModal,
         closeDistributorModal,
         submitDistributorInquiry,
-        isThreeDAtelierOpen,
-        threeDProduct,
-        openThreeDAtelier,
-        closeThreeDAtelier,
         selectedProduct,
         activeCategory,
         searchQuery,

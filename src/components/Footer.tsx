@@ -29,7 +29,6 @@ export const Footer: React.FC = () => {
     openHamper, 
     openAiChat, 
     openInstallModal, 
-    openPhonePreview, 
     openDistributorModal,
     setActiveCategory 
   } = useStore();
@@ -256,15 +255,6 @@ export const Footer: React.FC = () => {
                 >
                   <Bot className="w-3.5 h-3.5 text-[#D4AF37]" />
                   <span>AI Royal Spicer &amp; Sommelier</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={openPhonePreview}
-                  className="flex items-center gap-2 text-[#D4AF37] hover:text-[#FFF] transition-colors text-left font-medium"
-                >
-                  <Smartphone className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>Phone View Simulator</span>
                 </button>
               </li>
               <li>
