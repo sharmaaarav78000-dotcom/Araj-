@@ -1,14 +1,10 @@
 import express from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3000;
@@ -246,6 +242,22 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Serve manifest.webmanifest with correct MIME type
+app.get('/manifest.webmanifest', (req, res) => {
+  res.setHeader('Content-Type', 'application/manifest+json');
+  res.sendFile(path.join(process.cwd(), 'public', 'manifest.webmanifest'));
+});
+
+// Serve Digital Asset Links for Google Play Store Trusted Web Activity verification
+app.get('/.well-known/assetlinks.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.sendFile(path.join(process.cwd(), 'public', '.well-known', 'assetlinks.json'));
+});
+
+// Serve public assets directly
+const publicPath = path.join(process.cwd(), 'public');
+app.use(express.static(publicPath));
 
 // Vite middleware configuration for dev and production
 async function startServer() {

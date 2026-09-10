@@ -1,373 +1,764 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, ArrowRight, ShieldCheck, Award, Leaf, Star, Flame, Cpu, Gift, Bot } from 'lucide-react';
+import { 
+  ArrowRight, 
+  ShieldCheck, 
+  Award, 
+  Star, 
+  ShoppingBag, 
+  Check, 
+  ChevronLeft,
+  ChevronRight,
+  Flame,
+  ChefHat,
+  Building2,
+  Pause,
+  Play,
+  Sparkles,
+  UtensilsCrossed
+} from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { Product } from '../types';
+import { MagneticButton } from './MagneticButton';
+import { triggerParticleBurst } from '../utils/effects';
+import { playLuxuryChime } from '../utils/sound';
 
 interface HeroProps {
   onShopNow: () => void;
   onExplore: () => void;
 }
 
-const HERO_PRODUCTS = [
-  {
-    id: 'SPC-3',
-    name: 'Chana Masala',
-    tagline: 'Stone Ground • Royal Punjabi Blend',
-    weight: '100g',
-    price: 80,
-    originalPrice: 160,
-    image: '/images/products-spices/chana-masala.png',
-    accentColor: '#E69C36',
-    notes: 'Authentic stone-ground whole spices with zero artificial preservatives',
-  },
-  {
-    id: 'SPC-4',
-    name: 'Haldi (Turmeric Powder)',
-    tagline: 'High Curcumin • Pure Golden Harvest',
-    weight: '500g',
-    price: 130,
-    originalPrice: 260,
-    image: '/images/products-spices/turmeric-powder.jpg',
-    accentColor: '#FFB800',
-    notes: 'Pure vibrant turmeric for healing nutrition and royal golden color',
-  },
-  {
-    id: 'DF-3',
-    name: 'Badam Migi (Selected Almonds)',
-    tagline: 'Jumbo Size • Rich in Vitamin E',
-    weight: '250g',
-    price: 249,
-    originalPrice: 499,
-    image: '/images/products-df/almonds-badam.png',
-    accentColor: '#D4AF37',
-    notes: '100% natural, crisp California almonds hand-selected in Agra',
-  },
-  {
-    id: 'DF-1',
-    name: 'Premium Cashews (Kaju)',
-    tagline: 'W240 Jumbo • Creamy & Sweet',
-    weight: '250g',
-    price: 299,
-    originalPrice: 599,
-    image: '/images/products-df/cashews-kaju.png',
-    accentColor: '#EAD7B0',
-    notes: 'Naturally whole, uniform cashew kernels with velvety crunch',
-  },
-  {
-    id: 'GIFT-1',
-    name: 'Premium Gifting Dryfruits Box',
-    tagline: 'Royal Indian Festive Collection',
-    weight: '1kg',
-    price: 825,
-    originalPrice: 1650,
-    image: '/images/products-gifting/premium-gifting-dryfruits-box.png',
-    accentColor: '#D4AF37',
-    notes: 'Curated 4-compartment luxury keepsake box with gold foiling',
-  }
-];
+// Realistic SVG Floating Whole Red Chilli Component matching the video's floating spicy ambiance
+const FloatingChili: React.FC<{
+  className?: string;
+  rotate?: number;
+  scale?: number;
+  delay?: number;
+  duration?: number;
+}> = ({ className = '', rotate = 0, scale = 1, delay = 0, duration = 6 }) => (
+  <motion.div
+    animate={{
+      y: [0, -16, 4, 0],
+      rotate: [rotate, rotate + 9, rotate - 6, rotate],
+      scale: [scale, scale * 1.04, scale * 0.98, scale],
+    }}
+    transition={{
+      duration,
+      repeat: Infinity,
+      ease: 'easeInOut',
+      delay,
+    }}
+    className={`absolute pointer-events-none filter drop-shadow-[0_10px_20px_rgba(220,38,38,0.45)] z-20 ${className}`}
+  >
+    <svg viewBox="0 0 90 120" className="w-full h-full" fill="none">
+      <defs>
+        <linearGradient id="chiliRed" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F87171" />
+          <stop offset="25%" stopColor="#EF4444" />
+          <stop offset="65%" stopColor="#DC2626" />
+          <stop offset="90%" stopColor="#991B1B" />
+          <stop offset="100%" stopColor="#7F1D1D" />
+        </linearGradient>
+        <linearGradient id="stemGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#84CC16" />
+          <stop offset="60%" stopColor="#4D7C0F" />
+          <stop offset="100%" stopColor="#365314" />
+        </linearGradient>
+      </defs>
+      {/* Stem */}
+      <path
+        d="M 45 18 C 42 10, 36 4, 30 2 C 28 1, 27 3, 29 5 C 32 8, 38 13, 40 19 Z"
+        fill="url(#stemGreen)"
+      />
+      {/* Calyx Crown */}
+      <path
+        d="M 34 20 C 40 17, 52 17, 58 20 C 56 24, 52 26, 46 27 C 40 26, 36 24, 34 20 Z"
+        fill="#3F6212"
+      />
+      {/* Curved Chili Body */}
+      <path
+        d="M 38 22 C 54 22, 64 36, 63 56 C 62 76, 52 95, 41 112 C 40 114, 37 113, 37 111 C 32 96, 29 78, 29 55 C 29 38, 33 22, 38 22 Z"
+        fill="url(#chiliRed)"
+      />
+      {/* Glossy Curved Highlight */}
+      <path
+        d="M 37 28 C 40 42, 39 65, 34 88"
+        stroke="#FECACA"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        opacity="0.55"
+      />
+    </svg>
+  </motion.div>
+);
 
 export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
-  const [selectedIdx, setSelectedIdx] = useState(0);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const { addToCart, openProductDetail, products, openScanner, openHamper, openAiChat } = useStore();
+  const { products, addToCart, openProductDetail, openDistributorModal, setActiveCategory } = useStore();
 
-  const currentHero = HERO_PRODUCTS[selectedIdx];
+  // Curated product lookups
+  const haldiProduct = products.find((p) => p.id === 'SPC-4' || p.name.toLowerCase().includes('haldi')) || products[0];
+  const mirchProduct = products.find((p) => p.id === 'SPC-48' || p.name.toLowerCase().includes('lal mirch')) || products[1];
+  const dhaniyaProduct = products.find((p) => p.id === 'SPC-2' || p.name.toLowerCase().includes('dhaniya')) || products[2];
+  const kashmiriProduct = products.find((p) => p.id === 'SPC-12' || p.name.toLowerCase().includes('kashmiri')) || mirchProduct;
+  const chanaProduct = products.find((p) => p.id === 'SPC-3' || p.name.toLowerCase().includes('chana')) || products[3];
+  const garamProduct = products.find((p) => p.id === 'SPC-6' || p.name.toLowerCase().includes('garam')) || products[4];
 
-  // Subtle mouse tracking for cinematic parallax
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMousePos({ x, y });
+  // Carousel State
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [isPaused, setIsPaused] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const SLIDE_DURATION = 6000; // 6 seconds per slide
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const slides = [
+    {
+      id: 'ground-spices-trio',
+      badge: '100% PURE AGRA HERITAGE • ESTD. 1985',
+      headingLine1: 'Spice Manufacturers,',
+      headingLine2: 'in India',
+      isItalicHighlight: false,
+      hindiTagline: 'शुद्धता और स्वाद का अटूट विश्वास — Zero Compromise on Quality',
+      description: 'Slow low-temperature stone grinding that locks in precious natural volatile essential oils, therapeutic curcumin, and regal culinary aromas. 100% AGMARK certified with zero starch and zero artificial colors.',
+      ctaCategory: 'GROUND SPICES',
+      features: [
+        { label: 'No Artificial Colours', icon: 'check' },
+        { label: 'No Preservatives', icon: 'check' },
+        { label: '100% AGMARK Pure', icon: 'award' },
+      ],
+      type: 'trio',
+    },
+    {
+      id: 'kashmiri-mirch-special',
+      badge: 'GREAT TASTE • KASHMIRI SPECIAL',
+      headingLine1: 'Har pakwan ko',
+      headingLine2: 'jo banaye khaas',
+      isItalicHighlight: true,
+      hindiTagline: 'हर पकवान को जो बनाये ख़ास — गहरा लाल रंग और शाही खुशबू',
+      description: 'Hand-picked stemless sun-dried Kashmiri chillies ground with traditional Agra precision. Imparts an irresistible royal crimson glow and gentle aromatic warmth to every curry, dal, and samosa platter.',
+      ctaCategory: 'SPICES',
+      features: [
+        { label: 'Rich Natural Crimson Colour', icon: 'check' },
+        { label: 'Low Pungency & High Aroma', icon: 'check' },
+        { label: 'Stemless Dried Kashmiri Chillies', icon: 'award' },
+      ],
+      type: 'kashmiri',
+    },
+    {
+      id: 'chef-blends-heritage',
+      badge: 'APNE ANDAR KE CHEF KO JAGAO!',
+      headingLine1: 'Apne Andar Ke',
+      headingLine2: 'Chef Ko Jagao!',
+      isItalicHighlight: true,
+      hindiTagline: 'मुंशी पन्ना के शाही मसालों के साथ हर घर में रेस्टोरेंट जैसा ज़ायका',
+      description: 'Authentic Chana Masala, Garam Masala & Kitchen King, hand-roasted with 24 whole spices in small batches. Paired with jumbo Californian almonds and Kashmiri cashews for royal Shahi gravies.',
+      ctaCategory: 'BLENDED SPICES',
+      features: [
+        { label: '24 Hand-Selected Spices', icon: 'check' },
+        { label: 'Retains Volatile Oils', icon: 'check' },
+        { label: 'Direct Agra Mill Quality', icon: 'award' },
+      ],
+      type: 'chef',
+    },
+  ];
+
+  const totalSlides = slides.length;
+
+  const goToSlide = useCallback((newIdx: number, newDir: number = 1) => {
+    setDirection(newDir);
+    setCurrentSlide((newIdx + totalSlides) % totalSlides);
+    setProgress(0);
+    playLuxuryChime('sparkle');
+  }, [totalSlides]);
+
+  const handleNext = useCallback(() => {
+    goToSlide(currentSlide + 1, 1);
+  }, [currentSlide, goToSlide]);
+
+  const handlePrev = useCallback(() => {
+    goToSlide(currentSlide - 1, -1);
+  }, [currentSlide, goToSlide]);
+
+  // Autoplay and Progress Timer
+  useEffect(() => {
+    if (isPaused) return;
+
+    const intervalStep = 50;
+    const progressIncrement = (intervalStep / SLIDE_DURATION) * 100;
+
+    progressIntervalRef.current = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          handleNext();
+          return 0;
+        }
+        return prev + progressIncrement;
+      });
+    }, intervalStep);
+
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, [isPaused, handleNext]);
+
+  // Touch Swipe Support
+  const touchStartXRef = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    setIsPaused(true);
   };
 
-  // Auto rotate hero product every 8 seconds if idle
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSelectedIdx((prev) => (prev + 1) % HERO_PRODUCTS.length);
-    }, 8000);
-    return () => clearInterval(timer);
-  }, []);
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartXRef.current - touchEndX;
 
-  const handleHeroAddToCart = () => {
-    const prod = products.find((p) => p.name.toLowerCase().includes(currentHero.name.toLowerCase())) || products[0];
+    if (diff > 50) {
+      handleNext();
+    } else if (diff < -50) {
+      handlePrev();
+    }
+    touchStartXRef.current = null;
+    setIsPaused(false);
+  };
+
+  const currentData = slides[currentSlide];
+
+  const handleShopAction = (category: string) => {
+    setActiveCategory(category);
+    onShopNow();
+  };
+
+  const handleQuickAdd = (e: React.MouseEvent<HTMLButtonElement>, prod: Product) => {
+    e.stopPropagation();
+    triggerParticleBurst(e, { type: 'cart', targetCart: true });
     addToCart(prod, 1);
   };
 
-  const handleHeroQuickView = () => {
-    const prod = products.find((p) => p.name.toLowerCase().includes(currentHero.name.toLowerCase())) || products[0];
-    openProductDetail(prod);
+  const scrollToChefKitchen = () => {
+    const el = document.getElementById('chef-kitchen');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      onExplore();
+    }
+  };
+
+  // Slide Animation Variants
+  const slideVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 120 : -120,
+      opacity: 0,
+      scale: 0.98,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.65,
+        ease: [0.16, 1, 0.3, 1] as const,
+      },
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -120 : 120,
+      opacity: 0,
+      scale: 0.98,
+      transition: {
+        duration: 0.45,
+        ease: [0.16, 1, 0.3, 1] as const,
+      },
+    }),
   };
 
   return (
-    <section
+    <section 
       id="hero"
-      onMouseMove={handleMouseMove}
-      className="relative min-h-screen w-full pt-28 pb-16 lg:pt-36 lg:pb-24 flex items-center justify-center overflow-hidden bg-[#070709]"
+      aria-label="Munshi Panna Heritage Hero Carousel"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className="relative pt-24 sm:pt-32 pb-8 sm:pb-12 px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden flex flex-col select-none"
     >
+      {/* Floating Chillies Effect in Atmosphere */}
+      <FloatingChili className="top-16 left-6 w-14 h-20 opacity-85 hidden sm:block" rotate={-25} scale={1.1} delay={0.2} duration={5.5} />
+      <FloatingChili className="top-24 right-10 w-16 h-24 opacity-90 hidden md:block" rotate={35} scale={1.2} delay={1.2} duration={6.5} />
+      <FloatingChili className="bottom-28 left-1/3 w-10 h-16 opacity-70 hidden lg:block" rotate={15} scale={0.85} delay={2.0} duration={5.0} />
+      <FloatingChili className="top-1/2 right-1/4 w-12 h-18 opacity-75 hidden xl:block" rotate={-40} scale={0.95} delay={0.8} duration={7.0} />
+
       {/* Ambient background light gradients */}
-      <div 
-        className="absolute -top-40 left-1/4 w-[650px] h-[650px] rounded-full blur-[140px] pointer-events-none opacity-25"
-        style={{
-          background: 'radial-gradient(circle, rgba(212,175,55,0.35) 0%, rgba(184,139,42,0.15) 50%, transparent 80%)',
-          transform: `translate(${mousePos.x * 40}px, ${mousePos.y * 40}px)`,
-          transition: 'transform 0.2s ease-out'
-        }}
-      />
-      <div 
-        className="absolute bottom-10 right-10 w-[550px] h-[550px] rounded-full blur-[130px] pointer-events-none opacity-20"
-        style={{
-          background: 'radial-gradient(circle, rgba(229,193,88,0.3) 0%, rgba(20,18,14,0.1) 70%, transparent 100%)'
-        }}
-      />
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] rounded-full bg-radial from-[#D4AF37]/20 via-transparent to-transparent blur-[110px] sm:blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] rounded-full bg-radial from-[#E69C36]/15 via-transparent to-transparent blur-[90px] sm:blur-[130px] pointer-events-none" />
 
-      {/* Floating dust particles effect */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
-        {[...Array(16)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-[#D4AF37]"
-            style={{
-              width: `${(i % 3) + 2}px`,
-              height: `${(i % 3) + 2}px`,
-              top: `${(i * 19) % 95}%`,
-              left: `${(i * 29) % 95}%`,
-              opacity: 0.2 + (i % 5) * 0.15,
-              filter: 'blur(0.5px)',
-              animation: `pulse ${(i % 4) + 3}s ease-in-out infinite alternate`
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          
-          {/* Left Column: Brand Statement & Editorial Typography */}
+      {/* Main Slider Content Container */}
+      <div className="relative min-h-[580px] sm:min-h-[550px] lg:min-h-[560px] flex items-center">
+        <AnimatePresence custom={direction} mode="wait">
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-7 flex flex-col items-start text-left space-y-6"
+            key={currentSlide}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center relative z-10"
           >
-            {/* Heritage Script Emblem */}
-            <div className="space-y-1">
-              <span className="font-script-luxury text-2xl sm:text-3xl text-[#D4AF37] block">
-                Pure Tradition from Agra
-              </span>
-              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full glass-panel-gold border border-[#D4AF37]/35 text-[#F5DE88] text-xs font-semibold tracking-wider uppercase shadow-[0_0_20px_rgba(212,175,55,0.15)]">
-                <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-                <span>100% Pure & Authentic • Trusted Since 1985</span>
-              </div>
-            </div>
-
-            {/* Main Regal Heading */}
-            <div className="space-y-2">
-              <h1 className="font-serif text-4xl sm:text-6xl xl:text-7xl font-bold tracking-tight text-[#FAF7EE] leading-[1.08]">
-                Araj Pure <span className="gold-gradient-text font-serif italic">Spices</span> & Dry Fruits
-              </h1>
-              <p className="font-editorial italic text-lg sm:text-2xl font-light text-[#DFDACD] max-w-xl tracking-wide pt-1">
-                "Pure taste, natural aroma, and four decades of trusted quality."
-              </p>
-            </div>
-
-            {/* Editorial Luxury Description */}
-            <p className="text-sm sm:text-base text-[#B8B4A8] leading-relaxed max-w-lg font-normal">
-              Fresh from our traditional stone mills in Agra straight to your kitchen. We bring you hand-picked crunchy dry fruits, 100% pure stone-ground spices with no artificial colors or preservatives, and custom gift hampers for every celebration.
-            </p>
-
-            {/* CTAs with Futuristic Working Triggers */}
-            <div className="flex flex-wrap items-center gap-3.5 pt-2">
-              <button
-                id="hero-shop-now-cta"
-                onClick={onShopNow}
-                className="group relative px-7 py-3.5 rounded-full bg-gradient-to-r from-[#D4AF37] via-[#E8CD6D] to-[#C59F2D] text-[#0A0A0E] font-bold text-xs sm:text-sm tracking-wider uppercase shadow-[0_10px_30px_rgba(212,175,55,0.35)] hover:shadow-[0_15px_40px_rgba(212,175,55,0.5)] transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2.5 overflow-hidden cursor-pointer"
-              >
-                <span className="relative z-10">SHOP PURE COLLECTION</span>
-                <ArrowRight className="w-4 h-4 text-[#0A0A0E] group-hover:translate-x-1 transition-transform relative z-10" />
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-              </button>
-
-              <button
-                id="hero-scanner-cta"
-                onClick={() => openScanner()}
-                className="px-5 py-3.5 rounded-full glass-panel border border-[#D4AF37]/40 text-[#FAF7EE] hover:text-[#FFF] hover:border-[#D4AF37] hover:bg-[#D4AF37]/15 text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all duration-300 flex items-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.15)]"
-              >
-                <Cpu className="w-4 h-4 text-[#D4AF37] animate-pulse" />
-                <span>Purity Scanner</span>
-              </button>
-
-              <button
-                id="hero-hamper-cta"
-                onClick={openHamper}
-                className="px-5 py-3.5 rounded-full glass-pill text-xs sm:text-sm font-medium text-[#DFDACD] hover:text-[#FAF7EE] hover:border-[#D4AF37]/50 transition-all flex items-center gap-2 cursor-pointer"
-              >
-                <Gift className="w-4 h-4 text-[#D4AF37]" />
-                <span>Build Gift Hamper</span>
-              </button>
-
-              <button
-                id="hero-ai-chat-cta"
-                onClick={openAiChat}
-                className="px-5 py-3.5 rounded-full bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 border border-[#D4AF37]/50 text-xs sm:text-sm font-medium text-[#FAF7EE] hover:text-[#FFF] transition-all flex items-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.2)]"
-              >
-                <Bot className="w-4 h-4 text-[#D4AF37]" />
-                <span>Ask AI Spicer</span>
-              </button>
-            </div>
-
-            {/* Three Floating Highlights as Requested */}
-            <div className="pt-6 grid grid-cols-3 gap-3 sm:gap-6 border-t border-white/10 w-full max-w-lg">
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-widest text-[#D4AF37] font-semibold flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5" /> Since 1985
-                </span>
-                <span className="text-sm sm:text-base font-serif font-bold text-[#FAF7EE] mt-0.5">
-                  Four Decades
-                </span>
-                <span className="text-[11px] text-[#A6A295]">Rawatpara, Agra</span>
-              </div>
-
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-widest text-[#D4AF37] font-semibold flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> 100% Certified
-                </span>
-                <span className="text-sm sm:text-base font-serif font-bold text-[#FAF7EE] mt-0.5">
-                  Zero Adulteration
-                </span>
-                <span className="text-[11px] text-[#A6A295]">No Artificial Colors</span>
-              </div>
-
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-widest text-[#D4AF37] font-semibold flex items-center gap-1">
-                  <Leaf className="w-3.5 h-3.5" /> Stone Ground
-                </span>
-                <span className="text-sm sm:text-base font-serif font-bold text-[#FAF7EE] mt-0.5">
-                  Natural Aroma
-                </span>
-                <span className="text-[11px] text-[#A6A295]">Essential Oils Intact</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Right Column: Hero Showcase Card with Real Packaging */}
-          <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
-            
-            {/* Product Switcher Pills */}
-            <div className="flex items-center gap-1.5 p-1 rounded-full glass-panel border border-[#D4AF37]/25 mb-4 z-20 overflow-x-auto max-w-full">
-              {HERO_PRODUCTS.map((prod, idx) => (
-                <button
-                  key={prod.id}
-                  onClick={() => setSelectedIdx(idx)}
-                  className={`px-3 py-1 text-xs rounded-full font-medium transition-all duration-300 whitespace-nowrap ${
-                    selectedIdx === idx
-                      ? 'bg-[#D4AF37] text-[#0A0A0E] font-bold shadow-md'
-                      : 'text-[#DFDACD] hover:text-[#FFF] hover:bg-white/5'
-                  }`}
-                >
-                  {prod.name.split(' ')[0]}
-                </button>
-              ))}
-            </div>
-
-            {/* Cinematic Glass Showcase Container */}
-            <AnimatePresence mode="wait">
+            {/* Left Column: Headline, Brand Pillars & CTAs */}
+            <div className="lg:col-span-6 xl:col-span-7 space-y-5 sm:space-y-6 text-left">
+              
+              {/* Badge */}
               <motion.div
-                key={currentHero.id}
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                style={{
-                  transform: `perspective(1000px) rotateY(${mousePos.x * 8}deg) rotateX(${-mousePos.y * 8}deg)`,
-                  transition: 'transform 0.2s ease-out'
-                }}
-                className="relative w-full max-w-[420px] rounded-3xl p-6 sm:p-8 glass-panel-gold border border-[#D4AF37]/35 shadow-[0_25px_60px_rgba(0,0,0,0.8)] overflow-hidden group"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/45 text-[#F5DE88] text-[10px] sm:text-xs font-semibold tracking-wider uppercase shadow-[0_0_20px_rgba(212,175,55,0.15)]"
               >
-                {/* Metallic light sheen sweep on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
+                {currentData.type === 'chef' ? (
+                  <ChefHat className="w-3.5 h-3.5 text-[#D4AF37]" />
+                ) : (
+                  <Award className="w-3.5 h-3.5 text-[#D4AF37]" />
+                )}
+                <span>{currentData.badge}</span>
+              </motion.div>
 
-                {/* Floating Discount Pill */}
-                <div className="absolute top-5 left-5 z-20 px-3 py-1 rounded-full bg-[#D4AF37] text-[#0A0A0E] text-xs font-black tracking-wider uppercase shadow-md flex items-center gap-1">
-                  <Flame className="w-3 h-3 text-[#0A0A0E] fill-current" />
-                  50% OFF
-                </div>
+              {/* Main Dynamic Headline */}
+              <div className="space-y-2 sm:space-y-3">
+                <motion.h1
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.15 }}
+                  className="font-serif text-3xl xs:text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-[#FAF7EE] leading-[1.1] sm:leading-[1.08]"
+                >
+                  {currentData.headingLine1} <br />
+                  <span className={currentData.isItalicHighlight ? 'gold-gradient-text font-serif italic' : 'text-white/95'}>
+                    {currentData.headingLine2}
+                  </span>
+                </motion.h1>
 
-                {/* Pack Size Badge */}
-                <div className="absolute top-5 right-5 z-20 px-3 py-1 rounded-full glass-panel border border-white/20 text-[#FAF7EE] text-xs font-medium tracking-wide">
-                  Pack: {currentHero.weight}
-                </div>
+                {/* Authentic Hindi Tagline */}
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="font-hindi text-sm sm:text-lg text-[#F5DE88] font-semibold"
+                >
+                  {currentData.hindiTagline}
+                </motion.p>
+              </div>
 
-                {/* Hero Product Packaging (Rendered large and pristine) */}
-                <div className="relative w-full h-72 sm:h-80 flex items-center justify-center my-2">
-                  {/* Circular halo glow */}
-                  <div
-                    className="absolute w-56 h-56 rounded-full blur-2xl opacity-40 transition-colors duration-500"
-                    style={{ backgroundColor: currentHero.accentColor }}
-                  />
-                  
-                  {/* Authentic Product Image */}
-                  <img
-                    src={currentHero.image}
-                    alt={currentHero.name}
-                    className="relative z-10 max-h-full max-w-full object-contain filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.8)] group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
+              {/* Description Paragraph */}
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.25 }}
+                className="text-xs sm:text-base text-[#DFDACD] max-w-xl font-light leading-relaxed"
+              >
+                {currentData.description}
+              </motion.p>
 
-                {/* Card Information */}
-                <div className="space-y-2 pt-2 border-t border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs uppercase tracking-widest text-[#D4AF37] font-semibold">
-                      {currentHero.tagline}
-                    </span>
-                    <div className="flex items-center gap-1 text-[#F5DE88] text-xs font-semibold">
-                      <Star className="w-3.5 h-3.5 fill-[#F5DE88] text-[#F5DE88]" />
-                      4.9 (Verified)
-                    </div>
-                  </div>
+              {/* Actions Row with Distinctive Munshi Panna "SHOP NOW" Button */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="flex flex-col xs:flex-row flex-wrap items-stretch xs:items-center gap-3 pt-1"
+              >
+                {/* SHOP NOW Button */}
+                <MagneticButton
+                  id="hero-slider-shop-btn"
+                  onClick={() => handleShopAction(currentData.ctaCategory)}
+                  className="flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full bg-gradient-to-r from-[#D4AF37] via-[#E6CA65] to-[#C59F2D] text-[#0A0A0E] font-extrabold text-xs uppercase tracking-widest shadow-[0_8px_30px_rgba(212,175,55,0.45)] hover:shadow-[0_10px_35px_rgba(212,175,55,0.65)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer w-full xs:w-auto"
+                >
+                  <span>SHOP NOW</span>
+                  <ArrowRight className="w-4 h-4 text-[#0A0A0E]" />
+                </MagneticButton>
 
-                  <h3 className="font-serif text-2xl font-bold text-[#FAF7EE] tracking-tight">
-                    {currentHero.name}
-                  </h3>
+                {/* Secondary Action */}
+                <div className="flex items-center gap-2 w-full xs:w-auto">
+                  <MagneticButton
+                    onClick={scrollToChefKitchen}
+                    className="flex-1 xs:flex-initial flex items-center justify-center gap-1.5 px-4 sm:px-5 py-3.5 rounded-full bg-[#161622] hover:bg-[#1E1E2E] border border-[#D4AF37]/50 text-[#FAF7EE] text-xs font-semibold uppercase tracking-wider transition-all duration-300 cursor-pointer"
+                  >
+                    <ChefHat className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>CHEF RECIPES</span>
+                  </MagneticButton>
 
-                  <p className="text-xs text-[#A6A295] line-clamp-1">
-                    {currentHero.notes}
-                  </p>
-
-                  <div className="flex items-baseline gap-3 pt-1">
-                    <span className="text-2xl sm:text-3xl font-bold text-[#FAF7EE]">
-                      ₹{currentHero.price}
-                    </span>
-                    <span className="text-sm sm:text-base text-[#88847A] line-through">
-                      MRP ₹{currentHero.originalPrice}
-                    </span>
-                    <span className="text-xs font-semibold text-[#68D391]">
-                      Save ₹{currentHero.originalPrice - currentHero.price}
-                    </span>
-                  </div>
-
-                  {/* Dual Action Buttons */}
-                  <div className="grid grid-cols-2 gap-3 pt-3">
-                    <button
-                      onClick={handleHeroAddToCart}
-                      className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-md transition-all duration-200"
-                    >
-                      ADD TO CART
-                    </button>
-                    <button
-                      onClick={handleHeroQuickView}
-                      className="w-full py-2.5 rounded-xl glass-panel border border-[#D4AF37]/35 text-[#FAF7EE] hover:text-[#FFF] hover:bg-white/5 font-semibold text-xs uppercase tracking-wider transition-all duration-200"
-                    >
-                      DETAILS
-                    </button>
-                  </div>
+                  <MagneticButton
+                    onClick={openDistributorModal}
+                    className="flex-1 xs:flex-initial flex items-center justify-center gap-1.5 px-4 py-3.5 rounded-full bg-gradient-to-r from-[#D4AF37]/20 to-[#E69C36]/20 hover:from-[#D4AF37]/35 hover:to-[#E69C36]/35 border border-[#D4AF37]/50 text-[#F5DE88] text-xs font-semibold tracking-wider uppercase transition-all duration-300 cursor-pointer"
+                  >
+                    <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>B2B DEALERSHIP</span>
+                  </MagneticButton>
                 </div>
               </motion.div>
-            </AnimatePresence>
+
+              {/* Bullet Points with Checkmarks directly beneath button (Video Style) */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.35 }}
+                className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 text-xs sm:text-sm text-[#FAF7EE] font-medium"
+              >
+                {currentData.features.map((feat, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-[#48BB78]/20 border border-[#48BB78]/60 flex items-center justify-center text-[#48BB78] shrink-0">
+                      <Check className="w-3 h-3" />
+                    </div>
+                    <span>{feat.label}</span>
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+
+            {/* Right Column: Dynamic Visual Stage for Each Slide */}
+            <div className="lg:col-span-6 xl:col-span-5 flex justify-center items-center relative">
+              
+              {/* SLIDE 1: Trio of Indian Ground Spices (Haldi, Mirch center, Dhaniya) */}
+              {currentData.type === 'trio' && (
+                <div className="relative w-full max-w-lg flex flex-col items-center">
+                  {/* Glowing warm halo backdrop */}
+                  <div className="absolute inset-0 bg-radial from-[#D4AF37]/25 via-transparent to-transparent blur-3xl -z-10" />
+
+                  {/* 3 Spices Packets Showcase Stand */}
+                  <div className="relative w-full h-80 sm:h-96 flex items-end justify-center px-2">
+                    
+                    {/* Left: Haldi Turmeric Packet */}
+                    <motion.div
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ duration: 0.6, delay: 0.1 }}
+                      onClick={() => openProductDetail(haldiProduct)}
+                      className="w-1/3 -mr-3 z-10 flex flex-col items-center cursor-pointer group"
+                    >
+                      <div className="relative w-28 sm:w-36 h-48 sm:h-60 rounded-2xl bg-[#121218]/80 border border-[#ECC94B]/40 p-2 shadow-2xl backdrop-blur-md group-hover:scale-105 group-hover:border-[#ECC94B] transition-transform duration-300">
+                        <div className="w-full h-full rounded-xl bg-gradient-to-b from-white to-[#FEFCBF] p-1.5 overflow-hidden flex items-center justify-center">
+                          <img
+                            src={haldiProduct.image}
+                            alt="Haldi Powder"
+                            className="max-h-full object-contain filter drop-shadow-md"
+                          />
+                        </div>
+                        <span className="absolute top-1.5 left-2 px-1.5 py-0.5 rounded bg-[#ECC94B] text-[#1A202C] text-[9px] font-black uppercase">
+                          Haldi
+                        </span>
+                      </div>
+                      {/* Turmeric Powder Mound & Raw Roots Indicator */}
+                      <div className="mt-2 text-center">
+                        <span className="text-[11px] font-bold text-[#F6E05E] block">हल्दी पाउडर</span>
+                        <span className="text-[9px] text-[#A0AEC0]">Golden Curcumin</span>
+                      </div>
+                    </motion.div>
+
+                    {/* Center: Mirch Red Chilli Powder (Elevated in front, exact video centerpiece) */}
+                    <motion.div
+                      initial={{ y: 40, opacity: 0, scale: 0.9 }}
+                      animate={{ y: 0, opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                      onClick={() => openProductDetail(mirchProduct)}
+                      className="w-2/5 z-30 -mb-2 flex flex-col items-center cursor-pointer group"
+                    >
+                      <div className="relative w-36 sm:w-44 h-56 sm:h-72 rounded-2xl bg-[#14141E] border-2 border-[#E53E3E]/60 p-2 shadow-[0_20px_50px_rgba(229,62,62,0.35)] backdrop-blur-md group-hover:scale-105 group-hover:border-[#E53E3E] transition-all duration-300">
+                        {/* Red Aura Glow */}
+                        <div className="absolute inset-0 bg-radial from-[#E53E3E]/20 via-transparent to-transparent blur-xl pointer-events-none" />
+                        <div className="w-full h-full rounded-xl bg-gradient-to-b from-white to-[#FED7D7] p-2 overflow-hidden flex items-center justify-center relative">
+                          <img
+                            src={mirchProduct.image}
+                            alt="Lal Mirch Powder"
+                            className="max-h-full object-contain filter drop-shadow-xl"
+                          />
+                        </div>
+                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#E53E3E] text-white text-[10px] font-black uppercase tracking-wider shadow-md">
+                          ★ Mirch
+                        </span>
+                      </div>
+                      {/* Red Chilli Powder Mound & Whole Chillies Indicator */}
+                      <div className="mt-2 text-center">
+                        <span className="text-xs font-bold text-[#FC8181] block">लाल मिर्च पाउडर</span>
+                        <span className="text-[10px] text-[#CBD5E0]">Vibrant Pure Red</span>
+                      </div>
+                    </motion.div>
+
+                    {/* Right: Dhaniya Coriander Packet */}
+                    <motion.div
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                      onClick={() => openProductDetail(dhaniyaProduct)}
+                      className="w-1/3 -ml-3 z-10 flex flex-col items-center cursor-pointer group"
+                    >
+                      <div className="relative w-28 sm:w-36 h-48 sm:h-60 rounded-2xl bg-[#121218]/80 border border-[#38A169]/40 p-2 shadow-2xl backdrop-blur-md group-hover:scale-105 group-hover:border-[#38A169] transition-transform duration-300">
+                        <div className="w-full h-full rounded-xl bg-gradient-to-b from-white to-[#C6F6D5] p-1.5 overflow-hidden flex items-center justify-center">
+                          <img
+                            src={dhaniyaProduct.image}
+                            alt="Dhaniya Powder"
+                            className="max-h-full object-contain filter drop-shadow-md"
+                          />
+                        </div>
+                        <span className="absolute top-1.5 right-2 px-1.5 py-0.5 rounded bg-[#38A169] text-white text-[9px] font-black uppercase">
+                          Dhaniya
+                        </span>
+                      </div>
+                      {/* Coriander Powder Mound Indicator */}
+                      <div className="mt-2 text-center">
+                        <span className="text-[11px] font-bold text-[#68D391] block">धनिया पाउडर</span>
+                        <span className="text-[9px] text-[#A0AEC0]">Fresh Roasted Seeds</span>
+                      </div>
+                    </motion.div>
+
+                  </div>
+
+                  {/* Podium Base Reflection Line with Spices Mounds */}
+                  <div className="w-full max-w-sm h-1.5 bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent rounded-full mt-2 shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
+                </div>
+              )}
+
+              {/* SLIDE 2: Kashmiri Mirch Special with Samosas, Curry & Sunburst Glow */}
+              {currentData.type === 'kashmiri' && (
+                <div className="relative w-full max-w-lg flex flex-col items-center">
+                  
+                  {/* Radiant Sunburst Background Glow (Exact video scene) */}
+                  <div className="absolute -inset-10 bg-radial from-[#DD6B20]/35 via-[#C53030]/20 to-transparent rounded-full blur-2xl animate-pulse pointer-events-none" />
+
+                  <div className="relative w-full h-80 sm:h-96 flex items-center justify-center">
+                    
+                    {/* Left Dish: Crispy Punjabi Samosas with Chutneys */}
+                    <motion.div
+                      initial={{ opacity: 0, x: -30, scale: 0.9 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.15 }}
+                      className="absolute -left-2 sm:left-0 bottom-4 w-32 sm:w-40 h-32 sm:h-40 rounded-full border-2 border-[#D4AF37]/50 overflow-hidden shadow-2xl z-20 group"
+                    >
+                      <img
+                        src="https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=400&q=80"
+                        alt="Crispy Samosas"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center p-1.5">
+                        <span className="text-[10px] sm:text-xs font-bold text-[#F5DE88]">Crispy Samosas</span>
+                      </div>
+                    </motion.div>
+
+                    {/* Centerpiece: Munshi Panna Kashmiri Mirch Pack with "Great Taste" seal */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 25, scale: 0.92 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                      onClick={() => openProductDetail(kashmiriProduct)}
+                      className="relative z-30 w-44 sm:w-56 h-64 sm:h-80 rounded-3xl bg-[#14141E] border-2 border-[#E53E3E] p-2.5 shadow-[0_25px_60px_rgba(229,62,62,0.4)] cursor-pointer group"
+                    >
+                      {/* Great Taste Seal Badge */}
+                      <div className="absolute -top-3 -right-3 z-40 px-3 py-1 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1 border border-white/40">
+                        <Star className="w-3 h-3 fill-[#0A0A0E]" />
+                        <span>Great Taste</span>
+                      </div>
+
+                      <div className="w-full h-full rounded-2xl bg-gradient-to-b from-white via-white to-[#FED7D7] p-2 overflow-hidden flex items-center justify-center">
+                        <img
+                          src={kashmiriProduct.image}
+                          alt="Kashmiri Lal Mirch"
+                          className="max-h-full object-contain filter drop-shadow-xl group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    </motion.div>
+
+                    {/* Right Dish: Rich Aromatic Indian Curry / Dal Makhani Bowl */}
+                    <motion.div
+                      initial={{ opacity: 0, x: 30, scale: 0.9 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.25 }}
+                      className="absolute -right-2 sm:right-0 bottom-4 w-32 sm:w-40 h-32 sm:h-40 rounded-full border-2 border-[#D4AF37]/50 overflow-hidden shadow-2xl z-20 group"
+                    >
+                      <img
+                        src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=400&q=80"
+                        alt="Royal Curry"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center p-1.5">
+                        <span className="text-[10px] sm:text-xs font-bold text-[#F5DE88]">Shahi Dal &amp; Curry</span>
+                      </div>
+                    </motion.div>
+
+                  </div>
+
+                  {/* Caption */}
+                  <p className="text-xs text-[#FAF7EE] font-medium text-center mt-2 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#E53E3E] inline-block animate-ping" />
+                    <span>गहरा प्राकृतिक रंग • 100% साबुत कश्मीरी मिर्च</span>
+                  </p>
+                </div>
+              )}
+
+              {/* SLIDE 3: Chef's Kitchen & Blended Masale (Chana Masala, Garam Masala) */}
+              {currentData.type === 'chef' && (
+                <div className="relative w-full max-w-lg flex flex-col items-center">
+                  
+                  {/* Golden kitchen aura */}
+                  <div className="absolute inset-0 bg-radial from-[#D4AF37]/25 via-[#975A16]/20 to-transparent blur-3xl pointer-events-none" />
+
+                  <div className="relative w-full h-80 sm:h-96 flex items-center justify-center">
+                    
+                    {/* Left: Authentic Punjabi Chole dish */}
+                    <motion.div
+                      initial={{ opacity: 0, x: -25 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.6, delay: 0.15 }}
+                      className="absolute -left-3 sm:left-2 bottom-6 w-32 sm:w-40 h-32 sm:h-40 rounded-3xl border-2 border-[#D4AF37]/60 overflow-hidden shadow-2xl z-20 group"
+                    >
+                      <img
+                        src="https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=400&q=80"
+                        alt="Amritsari Chole"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center p-2">
+                        <span className="text-[10px] sm:text-xs font-bold text-[#F5DE88]">Amritsari Chole</span>
+                      </div>
+                    </motion.div>
+
+                    {/* Center: Chana Masala Blend Pack */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                      onClick={() => openProductDetail(chanaProduct)}
+                      className="relative z-30 w-40 sm:w-48 h-60 sm:h-72 rounded-3xl bg-[#14141E] border-2 border-[#D4AF37] p-2 shadow-[0_20px_50px_rgba(212,175,55,0.35)] cursor-pointer group"
+                    >
+                      <div className="w-full h-full rounded-2xl bg-gradient-to-b from-white to-[#FEFCBF] p-2 overflow-hidden flex items-center justify-center">
+                        <img
+                          src={chanaProduct.image}
+                          alt="Chana Masala"
+                          className="max-h-full object-contain filter drop-shadow-xl group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#D4AF37] text-[#0A0A0E] text-[10px] font-black uppercase tracking-wider">
+                        Chana Masala
+                      </span>
+                    </motion.div>
+
+                    {/* Right: Garam Masala Blend Pack */}
+                    <motion.div
+                      initial={{ opacity: 0, x: 25 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.6, delay: 0.25 }}
+                      onClick={() => openProductDetail(garamProduct)}
+                      className="absolute -right-3 sm:right-2 bottom-6 w-32 sm:w-38 h-48 sm:h-56 rounded-2xl bg-[#14141E] border border-[#D4AF37]/50 p-1.5 shadow-2xl z-20 cursor-pointer group"
+                    >
+                      <div className="w-full h-full rounded-xl bg-gradient-to-b from-white to-[#FEFCBF] p-1.5 overflow-hidden flex items-center justify-center">
+                        <img
+                          src={garamProduct.image}
+                          alt="Garam Masala"
+                          className="max-h-full object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-[#E69C36] text-[#0A0A0E] text-[9px] font-black uppercase">
+                        Garam Masala
+                      </span>
+                    </motion.div>
+
+                  </div>
+
+                  <p className="text-xs text-[#FAF7EE] font-medium text-center mt-2 flex items-center gap-1.5">
+                    <UtensilsCrossed className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>24 मसालों का शाही मिश्रण • हर बाइट में अनोखा स्वाद</span>
+                  </p>
+                </div>
+              )}
+
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Previous Slide Navigation Arrow Button */}
+        <button
+          onClick={handlePrev}
+          aria-label="Previous Slide"
+          className="absolute left-0 sm:-left-3 top-1/2 -translate-y-1/2 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#12121A]/85 hover:bg-[#D4AF37] text-[#DFDACD] hover:text-[#0A0A0E] border border-[#D4AF37]/40 flex items-center justify-center backdrop-blur-md transition-all duration-300 shadow-xl cursor-pointer"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
+        {/* Next Slide Navigation Arrow Button */}
+        <button
+          onClick={handleNext}
+          aria-label="Next Slide"
+          className="absolute right-0 sm:-right-3 top-1/2 -translate-y-1/2 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#12121A]/85 hover:bg-[#D4AF37] text-[#DFDACD] hover:text-[#0A0A0E] border border-[#D4AF37]/40 flex items-center justify-center backdrop-blur-md transition-all duration-300 shadow-xl cursor-pointer"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Interactive Bottom Carousel Controls Bar (Pills & Autoplay Progress) */}
+      <div className="mt-4 sm:mt-6 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 relative z-20">
+        
+        {/* Slide Indicator Pills */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {slides.map((slide, idx) => (
+            <button
+              key={slide.id}
+              onClick={() => goToSlide(idx, idx > currentSlide ? 1 : -1)}
+              className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold tracking-wider transition-all duration-300 cursor-pointer ${
+                currentSlide === idx
+                  ? 'bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] shadow-[0_0_15px_rgba(212,175,55,0.4)] font-bold'
+                  : 'bg-white/5 hover:bg-white/10 text-[#B8B4A8] hover:text-[#FAF7EE] border border-white/5'
+              }`}
+            >
+              <span>0{idx + 1}</span>
+              <span className="hidden xs:inline">
+                {idx === 0 ? 'Ground Spices Trio' : idx === 1 ? 'Kashmiri Mirch Special' : "Chef's Blends"}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Slide Progress Bar & Pause Control */}
+        <div className="flex items-center gap-3 text-xs text-[#B8B4A8]">
+          {/* Progress Track */}
+          <div className="w-24 sm:w-36 h-1.5 rounded-full bg-white/10 overflow-hidden relative">
+            <motion.div
+              className="h-full bg-gradient-to-r from-[#D4AF37] to-[#E69C36] rounded-full"
+              style={{ width: `${progress}%` }}
+            />
           </div>
 
+          <button
+            onClick={() => setIsPaused(!isPaused)}
+            title={isPaused ? 'Resume autoplay' : 'Pause autoplay'}
+            className="p-1 rounded-full hover:bg-white/10 text-[#FAF7EE] transition-colors cursor-pointer"
+          >
+            {isPaused ? <Play className="w-3.5 h-3.5 text-[#F5DE88]" /> : <Pause className="w-3.5 h-3.5" />}
+          </button>
         </div>
       </div>
+
+      {/* Bottom Heritage Achievement Stats Plaque */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+        className="mt-6 sm:mt-8 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl glass-panel-gold border border-[#D4AF37]/25 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 text-center shadow-lg relative z-10"
+      >
+        <div className="space-y-0.5 sm:space-y-1">
+          <div className="font-serif text-xl sm:text-3xl font-bold gold-gradient-text">1985</div>
+          <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#A6A295] font-medium">Founded in Agra</div>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <div className="font-serif text-xl sm:text-3xl font-bold gold-gradient-text">100%</div>
+          <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#A6A295] font-medium">Purity &amp; No Starch</div>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <div className="font-serif text-xl sm:text-3xl font-bold gold-gradient-text">50,000+</div>
+          <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#A6A295] font-medium">Royal Homes Served</div>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <div className="font-serif text-xl sm:text-3xl font-bold gold-gradient-text">4.9 / 5</div>
+          <div className="text-[10px] sm:text-xs uppercase tracking-wider text-[#A6A295] font-medium">Verified Rating</div>
+        </div>
+      </motion.div>
     </section>
   );
 };

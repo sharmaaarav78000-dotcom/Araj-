@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, ShieldCheck, Sparkles, Activity, Cpu, CheckCircle2, 
@@ -11,39 +11,57 @@ import { playLuxuryChime } from '../utils/sound';
 
 export const PurityScannerModal: React.FC = () => {
   const { isScannerOpen, closeScanner, scannedProduct, addToCart, openProductDetail } = useStore();
-  const [selectedItem, setSelectedItem] = useState<Product | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Product | null>(() => PRODUCTS[0] || null);
   const [scanning, setScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(100);
+  const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (scannedProduct) {
-      setSelectedItem(scannedProduct);
-      triggerScan();
-    } else if (PRODUCTS.length > 0) {
-      setSelectedItem(PRODUCTS[0]);
+  const triggerScan = useCallback(() => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
     }
-  }, [scannedProduct, isScannerOpen]);
-
-  if (!isScannerOpen || !selectedItem) return null;
-
-  const triggerScan = () => {
     setScanning(true);
     setScanProgress(0);
     playLuxuryChime('scan');
 
     let current = 0;
-    const interval = setInterval(() => {
+    scanIntervalRef.current = setInterval(() => {
       current += 15;
       if (current >= 100) {
         setScanProgress(100);
         setScanning(false);
-        clearInterval(interval);
+        if (scanIntervalRef.current) {
+          clearInterval(scanIntervalRef.current);
+          scanIntervalRef.current = null;
+        }
         playLuxuryChime('success');
       } else {
         setScanProgress(current);
       }
     }, 90);
-  };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (scanIntervalRef.current) {
+        clearInterval(scanIntervalRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isScannerOpen) {
+      if (scannedProduct) {
+        setSelectedItem(scannedProduct);
+        triggerScan();
+      } else if (!selectedItem && PRODUCTS.length > 0) {
+        setSelectedItem(PRODUCTS[0]);
+        triggerScan();
+      }
+    }
+  }, [scannedProduct, isScannerOpen, triggerScan, selectedItem]);
+
+  if (!isScannerOpen || !selectedItem) return null;
 
   // Botanical laboratory metrics derived deterministically from product
   const isSpice = selectedItem.category.toLowerCase().includes('spice') || selectedItem.tags.includes('SPICES');

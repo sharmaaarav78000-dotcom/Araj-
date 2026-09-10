@@ -6,13 +6,24 @@
     --font-display: 'Cinzel', serif;
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-editorial: 'Cormorant Garamond', Georgia, serif;
+    --font-devanagari: 'Noto Serif Devanagari', 'Rozha One', Georgia, serif;
     --font-script: 'Alex Brush', cursive;
+
+    /* The Ultra-Premium Direction Palette */
+    --color-ivory: #FAF7EE;
+    --color-ivory-light: #FDFBF7;
+    --color-forest: #0D241A;
+    --color-forest-deep: #081711;
+    --color-walnut: #241912;
+    --color-walnut-deep: #160F0B;
+    --color-champagne: #C8A951;
+    --color-champagne-subtle: rgba(200, 169, 81, 0.15);
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #050508;
-    color: #F3EFE6;
+    background-color: #07070A;
+    color: #FAF7EE;
     overflow-x: hidden;
   }
 
@@ -28,9 +39,68 @@
     font-family: var(--font-editorial);
   }
 
+  .font-devanagari {
+    font-family: var(--font-devanagari);
+  }
+
   .font-script-luxury {
     font-family: var(--font-script);
   }
+}
+
+/* Luxury Micro-interactions & Controlled Elevation */
+.luxury-jar-hover {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.luxury-jar-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  filter: drop-shadow(0 30px 45px rgba(13, 36, 26, 0.45));
+}
+
+.luxury-nav-link {
+  position: relative;
+  transition: color 0.3s ease;
+}
+.luxury-nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 0;
+  height: 1.5px;
+  background: #C8A951;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.luxury-nav-link:hover::after {
+  width: 100%;
+  left: 0;
+}
+
+.luxury-arrow-glide {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+button:hover .luxury-arrow-glide,
+a:hover .luxury-arrow-glide {
+  transform: translateX(4px);
+}
+
+.subtle-image-scale {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.subtle-image-scale:hover {
+  transform: scale(1.03);
+}
+
+/* Subtle Jaali / Filigree Pattern */
+.bg-jaali-subtle {
+  background-image: radial-gradient(rgba(200, 169, 81, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-jaali-dark {
+  background-image: radial-gradient(rgba(200, 169, 81, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 /* Custom Glassmorphism Styles */

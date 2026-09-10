@@ -1,11 +1,12 @@
 export interface Product {
   id: string;
   name: string;
+  hindiName?: string;
   price: number;
   originalPrice: number;
   discountPercentage?: number;
   category: 'spices' | 'dry fruits' | 'gifting';
-  tags: ('ALL' | 'DRY FRUITS' | 'SPICES' | 'NUTS' | 'SEEDS' | 'GIFT PACKS')[];
+  tags: ('ALL' | 'DRY FRUITS' | 'SPICES' | 'NUTS' | 'SEEDS' | 'GIFT PACKS' | 'GROUND SPICES' | 'BLENDED SPICES')[];
   image: string;
   description: string;
   weight: string;
@@ -48,5 +49,29 @@ export interface Order {
   status: 'Confirmed' | 'Dispatched' | 'Delivered';
 }
 
-export type CategoryFilter = 'ALL' | 'DRY FRUITS' | 'SPICES' | 'NUTS' | 'SEEDS' | 'GIFT PACKS';
+export interface DistributorInquiry {
+  id: string;
+  fullName: string;
+  businessName: string;
+  phone: string;
+  email?: string;
+  city: string;
+  state: string;
+  businessType: 'distributor' | 'wholesaler' | 'retailer' | 'caterer_hotel' | 'gift_reseller';
+  expectedVolume: string;
+  message?: string;
+  createdAt: string;
+}
+
+export type CategoryFilter = 
+  | 'ALL' 
+  | 'GROUND SPICES' 
+  | 'BLENDED SPICES' 
+  | 'DRY FRUITS' 
+  | 'NUTS' 
+  | 'SEEDS' 
+  | 'GIFT PACKS' 
+  | 'SPICES';
+
 export type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'rating' | 'discount' | 'newest';
+

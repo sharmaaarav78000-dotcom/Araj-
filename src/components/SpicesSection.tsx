@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Sparkles, Flame, ShieldAlert, ArrowRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from './ProductCard';
+import { AromaTerpeneSimulator } from './AromaTerpeneSimulator';
 
 export const SpicesSection: React.FC<{ onExploreSpices: () => void }> = ({ onExploreSpices }) => {
   const { products } = useStore();
@@ -79,6 +80,9 @@ export const SpicesSection: React.FC<{ onExploreSpices: () => void }> = ({ onExp
           </div>
         ))}
       </div>
+
+      {/* Interactive Aroma & Terpene Dispersion Simulator */}
+      <AromaTerpeneSimulator />
 
       {/* Grid of Spice Product Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-7">

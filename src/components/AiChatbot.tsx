@@ -198,7 +198,7 @@ For personal culinary guidance or custom corporate hampers, you may also reach o
   return (
     <>
       {/* Floating Trigger Button in Bottom-Right Corner */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end">
+      <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 flex flex-col items-end">
         {!isAiChatOpen && (
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -214,24 +214,24 @@ For personal culinary guidance or custom corporate hampers, you may also reach o
               id="ai-chatbot-launcher-btn"
               title="Ask Araj Royal AI Spicer & Sommelier"
               aria-label="Open AI Assistant"
-              className="relative flex items-center gap-3 px-4 sm:px-5 py-3.5 rounded-full bg-[#0E0E14] border-2 border-[#D4AF37] text-[#FAF7EE] shadow-[0_10px_35px_rgba(212,175,55,0.35)] hover:shadow-[0_15px_45px_rgba(212,175,55,0.55)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 cursor-pointer overflow-hidden"
+              className="relative flex items-center gap-2.5 sm:gap-3 p-2.5 sm:px-5 sm:py-3.5 rounded-full bg-[#0E0E14] border-2 border-[#D4AF37] text-[#FAF7EE] shadow-[0_10px_35px_rgba(212,175,55,0.35)] hover:shadow-[0_15px_45px_rgba(212,175,55,0.55)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 cursor-pointer overflow-hidden"
             >
               {/* Gold light sweep sheen */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
 
               {/* Bot Avatar Icon */}
-              <div className="relative w-9 h-9 rounded-full bg-gradient-to-tr from-[#D4AF37] via-[#FFF3CC] to-[#C59F2D] p-0.5 shadow-md flex items-center justify-center">
+              <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-[#D4AF37] via-[#FFF3CC] to-[#C59F2D] p-0.5 shadow-md flex items-center justify-center shrink-0">
                 <div className="w-full h-full rounded-full bg-[#12121A] flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-[#D4AF37]" />
+                  <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-[#D4AF37]" />
                 </div>
                 <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#48BB78] ring-2 ring-[#0E0E14] animate-ping" />
               </div>
 
-              <div className="flex flex-col text-left">
+              <div className="hidden sm:flex flex-col text-left">
                 <span className="font-serif text-xs font-bold text-[#FAF7EE] tracking-wide flex items-center gap-1.5">
                   Araj Royal AI <Sparkles className="w-3 h-3 text-[#D4AF37]" />
                 </span>
-                <span className="text-[10px] text-[#D4AF37] font-mono uppercase tracking-wider">
+                <span className="text-[9px] sm:text-[10px] text-[#D4AF37] font-mono uppercase tracking-wider">
                   Spicer & Sommelier
                 </span>
               </div>
@@ -249,12 +249,12 @@ For personal culinary guidance or custom corporate hampers, you may also reach o
               opacity: 1,
               y: 0,
               scale: 1,
-              height: isMinimized ? 'auto' : '620px',
+              height: isMinimized ? 'auto' : 'min(580px, calc(100dvh - 1.5rem))',
             }}
             exit={{ opacity: 0, y: 40, scale: 0.95 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className={`fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[460px] max-w-[95vw] rounded-3xl glass-card-futuristic border border-[#D4AF37]/45 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden bg-[#0A0A0E]/95 backdrop-blur-2xl transition-all duration-300`}
-            style={{ maxHeight: 'calc(100vh - 2rem)' }}
+            className={`fixed bottom-2 sm:bottom-6 right-2 sm:right-6 z-50 w-[calc(100vw-1rem)] sm:w-[460px] max-w-[95vw] rounded-2xl sm:rounded-3xl glass-card-futuristic border border-[#D4AF37]/45 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden bg-[#0A0A0E]/95 backdrop-blur-2xl transition-all duration-300`}
+            style={{ maxHeight: 'calc(100dvh - 1rem)' }}
           >
             {/* Top Header Bar */}
             <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-[#12121B] via-[#161624] to-[#12121B] relative">

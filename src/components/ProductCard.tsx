@@ -3,13 +3,22 @@ import { motion } from 'motion/react';
 import { Heart, Eye, ShoppingCart, Zap, Star, Activity, Sparkles } from 'lucide-react';
 import { Product } from '../types';
 import { useStore } from '../context/StoreContext';
+import { triggerParticleBurst } from '../utils/effects';
+import { playLuxuryChime } from '../utils/sound';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addToCart, toggleWishlist, isInWishlist, openProductDetail, openCheckout, openScanner } = useStore();
+  const { 
+    addToCart, 
+    toggleWishlist, 
+    isInWishlist, 
+    openProductDetail, 
+    openCheckout, 
+    openScanner
+  } = useStore();
   const wishlisted = isInWishlist(product.id);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
@@ -40,17 +49,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.stopPropagation();
+    triggerParticleBurst(e, { type: 'gold' });
     addToCart(product, 1);
     openCheckout();
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    triggerParticleBurst(e, { type: 'cart', targetCart: true });
     addToCart(product, 1);
   };
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();
+    triggerParticleBurst(e, { type: 'heart' });
+    playLuxuryChime('heart');
     toggleWishlist(product);
   };
 
@@ -61,6 +74,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const handleOpenScanner = (e: React.MouseEvent) => {
     e.stopPropagation();
+    triggerParticleBurst(e, { type: 'spice' });
     openScanner(product);
   };
 
@@ -146,16 +160,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
       </div>
 
-      {/* Product Image Stage */}
-      <div className="relative w-full h-48 sm:h-52 flex items-center justify-center my-2 p-2">
+      {/* Product Image Stage on Studio Podium */}
+      <div className="relative w-full h-44 sm:h-52 rounded-2xl bg-gradient-to-b from-white via-white to-[#FAF8F2] flex items-center justify-center my-2 p-3 overflow-hidden border border-[#D4AF37]/25 shadow-sm group-hover:border-[#D4AF37]/50 transition-colors">
         {/* Soft radial backdrop halo on hover */}
-        <div className="absolute w-36 h-36 rounded-full bg-[#D4AF37]/15 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-radial from-amber-100/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         <img
           src={product.image}
           alt={product.name}
           loading="lazy"
-          className="relative z-10 max-h-full max-w-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.7)] group-hover:scale-108 transition-transform duration-500 ease-out"
+          className="relative z-10 max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)] group-hover:scale-105 transition-transform duration-500 ease-out"
           onError={(e) => {
             const target = e.currentTarget;
             if (!target.src.includes('arajpure.com')) {

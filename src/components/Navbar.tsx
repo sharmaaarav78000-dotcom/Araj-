@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Heart, User, ShoppingBag, Menu, X, Sparkles, Cpu, Gift, Volume2, VolumeX, Bot } from 'lucide-react';
+import { 
+  Search, 
+  Heart, 
+  User, 
+  ShoppingBag, 
+  Menu, 
+  X, 
+  Sparkles, 
+  Cpu, 
+  Gift, 
+  Volume2, 
+  VolumeX, 
+  Bot, 
+  Smartphone,
+  Building2,
+  ChefHat,
+  PhoneCall,
+  Box
+} from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { toggleAudioMute, getIsAudioMuted } from '../utils/sound';
 
@@ -22,7 +40,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
     setActiveCategory,
     openScanner,
     openHamper,
-    openAiChat
+    openAiChat,
+    openInstallModal,
+    openPhonePreview,
+    openDistributorModal,
+    openThreeDAtelier
   } = useStore();
 
   const handleAudioToggle = () => {
@@ -40,20 +62,51 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
 
   const navItems = [
     { label: 'Home', action: () => onNavigate('hero') },
-    { label: 'Shop', action: () => { setActiveCategory('ALL'); onNavigate('catalog'); } },
+    { label: 'Spices (मसाले)', action: () => { setActiveCategory('SPICES'); onNavigate('spices'); } },
+    { label: 'Ground Spices (पिसे)', action: () => { setActiveCategory('GROUND SPICES'); onNavigate('catalog'); } },
+    { label: 'Blended Masale (मिक्स)', action: () => { setActiveCategory('BLENDED SPICES'); onNavigate('catalog'); } },
+    { label: 'Chef Recipes', action: () => onNavigate('chef-kitchen') },
     { label: 'Dry Fruits', action: () => { setActiveCategory('DRY FRUITS'); onNavigate('dry-fruits'); } },
-    { label: 'Spices', action: () => { setActiveCategory('SPICES'); onNavigate('spices'); } },
-    { label: 'Nuts', action: () => { setActiveCategory('NUTS'); onNavigate('catalog'); } },
-    { label: 'Seeds', action: () => { setActiveCategory('SEEDS'); onNavigate('catalog'); } },
     { label: 'Gift Packs', action: () => { setActiveCategory('GIFT PACKS'); onNavigate('gifting'); } },
-    { label: 'About', action: () => onNavigate('story') },
+    { label: 'Our Story', action: () => onNavigate('story') },
   ];
 
   return (
     <>
+      {/* Munshi Panna Masale Reference Top Bar: Purity, Agra Heritage, AGMARK & B2B Dealership Hotline */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[#09090E] border-b border-[#D4AF37]/30 text-[#DFDACD] py-1 px-3 sm:px-6 text-[10px] sm:text-[11px] font-mono tracking-wider flex items-center justify-between">
+        <div className="flex items-center gap-2 truncate">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#48BB78] animate-ping shrink-0" />
+          <span className="text-[#F5DE88] font-bold">Zero Compromise on Quality &amp; Taste</span>
+          <span className="text-white/30 hidden md:inline">•</span>
+          <span className="hidden md:inline text-white/80">Authentic Agra Masale &amp; Pure Dry Fruits Since 1985</span>
+          <span className="text-white/30 hidden lg:inline">•</span>
+          <span className="hidden lg:inline text-[#D4AF37]">AGMARK Grade Certified</span>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={openDistributorModal}
+            className="text-[#F5DE88] hover:text-white font-semibold underline underline-offset-2 flex items-center gap-1 cursor-pointer"
+          >
+            <Building2 className="w-3 h-3 text-[#D4AF37]" />
+            <span>B2B / Dealership</span>
+          </button>
+          <span className="text-white/30">•</span>
+          <a
+            href="tel:+918979221409"
+            className="hover:text-[#F5DE88] transition-colors flex items-center gap-1"
+          >
+            <PhoneCall className="w-3 h-3 text-[#D4AF37]" />
+            <span className="hidden sm:inline">+91 89792 21409</span>
+            <span className="sm:hidden">Agra Mill</span>
+          </a>
+        </div>
+      </div>
+
       <header
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 flex justify-center ${
-          isScrolled ? 'py-2 px-3 sm:px-6' : 'py-5 px-4 sm:px-8'
+        className={`fixed top-6 sm:top-7 left-0 right-0 z-40 transition-all duration-500 flex justify-center ${
+          isScrolled ? 'py-1 sm:py-1.5 px-2.5 sm:px-6' : 'py-2 sm:py-4 px-2.5 sm:px-8'
         }`}
       >
         <motion.nav
@@ -62,8 +115,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className={`w-full max-w-7xl mx-auto rounded-2xl flex items-center justify-between transition-all duration-500 border ${
             isScrolled
-              ? 'bg-[#0E0E14]/85 backdrop-blur-2xl border-[#D4AF37]/25 py-2.5 px-4 sm:px-6 shadow-[0_15px_35px_rgba(0,0,0,0.7)]'
-              : 'bg-[#101017]/60 backdrop-blur-xl border-white/10 py-3.5 px-5 sm:px-8 shadow-[0_10px_30px_rgba(0,0,0,0.4)]'
+              ? 'bg-[#0E0E14]/90 backdrop-blur-2xl border-[#D4AF37]/25 py-2 sm:py-2.5 px-3.5 sm:px-6 shadow-[0_15px_35px_rgba(0,0,0,0.7)]'
+              : 'bg-[#101017]/85 backdrop-blur-xl border-white/10 py-2.5 sm:py-3 px-3.5 sm:px-8 shadow-[0_10px_30px_rgba(0,0,0,0.4)]'
           }`}
         >
           {/* Brand Logo & Tagline */}
@@ -105,8 +158,31 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
           </div>
 
           {/* Right Action Icons */}
-          <div className="flex items-center gap-1 sm:gap-2.5">
+          <div className="flex items-center gap-1 sm:gap-2">
             
+            {/* 3D Spice Atelier 360° Interactive Studio Trigger */}
+            <button
+              onClick={() => openThreeDAtelier()}
+              id="navbar-3d-atelier-btn"
+              title="Experience 3D Spice Atelier (WebGL 360° Interactive)"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#D4AF37]/30 via-[#F5DE88]/20 to-[#D4AF37]/30 hover:from-[#D4AF37]/50 hover:to-[#F5DE88]/40 border border-[#D4AF37]/65 text-[#FAF7EE] text-xs font-bold tracking-wide transition-all shadow-[0_0_16px_rgba(212,175,55,0.35)] cursor-pointer active:scale-95"
+            >
+              <Box className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span className="font-mono text-[11px] uppercase tracking-wider">3D 360°</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E53E3E] animate-ping" />
+            </button>
+
+            {/* B2B / Dealership Button */}
+            <button
+              onClick={openDistributorModal}
+              id="navbar-dealership-btn"
+              title="Apply for B2B Dealership & Wholesale"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#D4AF37]/25 to-[#E69C36]/25 hover:from-[#D4AF37]/40 hover:to-[#E69C36]/40 border border-[#D4AF37]/50 text-[#F5DE88] text-xs font-semibold tracking-wide transition-all shadow-[0_0_12px_rgba(212,175,55,0.2)] cursor-pointer"
+            >
+              <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span className="text-[11px] font-bold">B2B / Dealership</span>
+            </button>
+
             {/* Working Futuristic Purity Scanner Trigger */}
             <button
               onClick={() => openScanner()}
@@ -135,11 +211,33 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               onClick={openAiChat}
               id="navbar-ai-spicer-btn"
               title="Consult Araj Royal AI Spicer & Sommelier"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#D4AF37]/20 to-[#FAF7EE]/10 hover:from-[#D4AF37]/35 hover:to-[#FAF7EE]/25 border border-[#D4AF37]/50 text-[#FAF7EE] text-xs font-semibold tracking-wide transition-all shadow-[0_0_15px_rgba(212,175,55,0.2)] cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#D4AF37]/20 to-[#FAF7EE]/10 hover:from-[#D4AF37]/35 hover:to-[#FAF7EE]/25 border border-[#D4AF37]/50 text-[#FAF7EE] text-xs font-semibold tracking-wide transition-all shadow-[0_0_15px_rgba(212,175,55,0.2)] cursor-pointer"
             >
               <Bot className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span className="font-mono text-[11px] uppercase tracking-wider hidden sm:inline">AI Spicer</span>
+              <span className="font-mono text-[11px] uppercase tracking-wider">AI Spicer</span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#48BB78] animate-ping" />
+            </button>
+
+            {/* Android App Download Trigger */}
+            <button
+              onClick={openInstallModal}
+              id="navbar-android-app-btn"
+              title="Download ARAJ App for Android"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#D4AF37]/25 to-[#F5DE88]/20 hover:from-[#D4AF37]/40 hover:to-[#F5DE88]/35 border border-[#D4AF37]/55 text-[#FAF7EE] text-xs font-semibold tracking-wide transition-all shadow-[0_0_12px_rgba(212,175,55,0.25)] cursor-pointer active:scale-95"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span className="text-[11px] font-bold">Android App</span>
+            </button>
+
+            {/* Phone View Simulator Trigger */}
+            <button
+              onClick={openPhonePreview}
+              id="navbar-phone-preview-btn"
+              title="Inspect Phone View in Device Simulator"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.06] hover:bg-[#D4AF37]/20 border border-white/15 hover:border-[#D4AF37]/50 text-[#FAF7EE] text-xs font-semibold tracking-wide transition-all cursor-pointer active:scale-95"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-[#F5DE88]" />
+              <span className="text-[11px] font-medium text-[#FAF7EE]">Phone View</span>
             </button>
 
             {/* Audio Synthesis Chime Mute Toggle */}
@@ -147,7 +245,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               onClick={handleAudioToggle}
               title={isMuted ? 'Unmute luxury sound chimes' : 'Mute luxury sound chimes'}
               aria-label="Toggle sound effects"
-              className="p-2 sm:p-2.5 rounded-full text-[#A6A295] hover:text-[#FAF7EE] hover:bg-white/5 transition-colors cursor-pointer"
+              className="hidden sm:flex p-2 rounded-full text-[#A6A295] hover:text-[#FAF7EE] hover:bg-white/5 transition-colors cursor-pointer"
             >
               {isMuted ? (
                 <VolumeX className="w-4 h-4 text-[#88847A]" />
@@ -166,12 +264,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               <Search className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </button>
 
-            {/* Wishlist Icon with Counter */}
+            {/* Wishlist Icon */}
             <button
               id="navbar-wishlist-btn"
               onClick={openWishlist}
               aria-label="Wishlist"
-              className="relative p-2 sm:p-2.5 rounded-full text-[#DFDACD] hover:text-[#FFF] hover:bg-[#D4AF37]/15 border border-transparent hover:border-[#D4AF37]/30 transition-all duration-200"
+              className="hidden sm:flex relative p-2 sm:p-2.5 rounded-full text-[#DFDACD] hover:text-[#FFF] hover:bg-[#D4AF37]/15 border border-transparent hover:border-[#D4AF37]/30 transition-all duration-200"
             >
               <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               {wishlist.length > 0 && (
@@ -196,7 +294,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               id="navbar-cart-btn"
               onClick={openCart}
               aria-label="Shopping Bag"
-              className="relative flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-gradient-to-r from-[#D4AF37]/25 via-[#E6CA65]/20 to-[#D4AF37]/15 border border-[#D4AF37]/45 text-[#FFF] hover:border-[#D4AF37] hover:shadow-[0_0_18px_rgba(212,175,55,0.35)] transition-all duration-300 group cursor-pointer"
+              className="relative flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-gradient-to-r from-[#D4AF37]/25 via-[#E6CA65]/20 to-[#D4AF37]/15 border border-[#D4AF37]/45 text-[#FFF] hover:border-[#D4AF37] hover:shadow-[0_0_18px_rgba(212,175,55,0.35)] transition-all duration-300 group cursor-pointer"
             >
               <div className="relative">
                 <ShoppingBag className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#F5DE88] group-hover:scale-110 transition-transform" />
@@ -227,91 +325,167 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
       {/* Mobile Drawer Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-x-4 top-20 z-30 lg:hidden rounded-2xl glass-panel-gold p-6 border border-[#D4AF37]/30 shadow-2xl backdrop-blur-2xl"
-          >
-            <div className="flex flex-col space-y-3">
-              <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                <span className="text-xs uppercase tracking-[0.2em] text-[#D4AF37]">
-                  Navigation
-                </span>
-                <span className="text-xs text-[#FAF7EE]/60 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-[#D4AF37]" /> Since 1985
-                </span>
-              </div>
+          <>
+            {/* Backdrop for click-outside dismissal */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -15, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -15, scale: 0.98 }}
+              transition={{ duration: 0.25 }}
+              className="fixed inset-x-3 sm:inset-x-4 top-16 sm:top-20 z-50 lg:hidden rounded-2xl glass-panel-gold p-5 sm:p-6 border border-[#D4AF37]/30 shadow-2xl backdrop-blur-2xl max-h-[calc(100vh-5rem)] overflow-y-auto"
+            >
+              <div className="flex flex-col space-y-3">
+                <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                  <span className="text-xs uppercase tracking-[0.2em] text-[#D4AF37]">
+                    Navigation
+                  </span>
+                  <span className="text-xs text-[#FAF7EE]/60 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-[#D4AF37]" /> Since 1985
+                  </span>
+                </div>
 
-              {/* Special Futuristic Triggers for Mobile */}
-              <div className="grid grid-cols-3 gap-2 pb-2">
-                <button
-                  onClick={() => {
-                    openAiChat();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gradient-to-b from-[#D4AF37]/25 to-[#FAF7EE]/10 border border-[#D4AF37]/50 text-[11px] text-[#FAF7EE] font-semibold"
-                >
-                  <Bot className="w-4 h-4 text-[#D4AF37]" />
-                  <span>AI Spicer</span>
-                </button>
-                <button
-                  onClick={() => {
-                    openScanner();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/35 text-[11px] text-[#FAF7EE] font-medium"
-                >
-                  <Cpu className="w-4 h-4 text-[#D4AF37]" />
-                  <span>Lab Scanner</span>
-                </button>
-                <button
-                  onClick={() => {
-                    openHamper();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl glass-pill text-[11px] text-[#FAF7EE] font-medium"
-                >
-                  <Gift className="w-4 h-4 text-[#D4AF37]" />
-                  <span>Hamper</span>
-                </button>
-              </div>
+                {/* Special Futuristic Triggers for Mobile */}
+                <div className="grid grid-cols-3 gap-2 pb-2">
+                  <button
+                    onClick={() => {
+                      openAiChat();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gradient-to-b from-[#D4AF37]/25 to-[#FAF7EE]/10 border border-[#D4AF37]/50 text-[11px] text-[#FAF7EE] font-semibold active:scale-95 transition-all"
+                  >
+                    <Bot className="w-4 h-4 text-[#D4AF37]" />
+                    <span>AI Spicer</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      openScanner();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/35 text-[11px] text-[#FAF7EE] font-medium active:scale-95 transition-all"
+                  >
+                    <Cpu className="w-4 h-4 text-[#D4AF37]" />
+                    <span>Scanner</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      openHamper();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl glass-pill text-[11px] text-[#FAF7EE] font-medium active:scale-95 transition-all"
+                  >
+                    <Gift className="w-4 h-4 text-[#D4AF37]" />
+                    <span>Hamper</span>
+                  </button>
+                </div>
 
-              {navItems.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => {
-                    item.action();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="text-left px-3 py-2 rounded-lg text-[#F3EFE6] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 text-base font-medium tracking-wide transition-all"
-                >
-                  {item.label}
-                </button>
-              ))}
-              <div className="pt-3 border-t border-white/10 flex items-center justify-around">
+                {/* Dealership / B2B Wholesale Quick Action for Mobile Drawer */}
                 <button
                   onClick={() => {
-                    openAccount();
+                    openDistributorModal();
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 text-xs text-[#DFDACD] hover:text-[#D4AF37]"
+                  className="w-full flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-[#D4AF37]/30 via-[#E69C36]/20 to-[#D4AF37]/30 border border-[#D4AF37]/60 text-[#FAF7EE] active:scale-98 transition-all shadow-md cursor-pointer my-1"
                 >
-                  <User className="w-4 h-4" /> Account
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-[#D4AF37]/25 flex items-center justify-center text-[#F5DE88] shrink-0">
+                      <Building2 className="w-4.5 h-4.5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-[#FAF7EE] leading-none">B2B Dealership &amp; Wholesale</p>
+                      <p className="text-[10px] text-[#D4AF37] font-medium mt-0.5">Direct Agra factory pricing</p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-[#D4AF37] text-[#0A0A0E] text-[10px] font-extrabold uppercase tracking-wider">
+                    Apply
+                  </span>
                 </button>
+
+                {/* Android App Quick Action for Mobile Drawer */}
                 <button
                   onClick={() => {
-                    openWishlist();
+                    openInstallModal();
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 text-xs text-[#DFDACD] hover:text-[#D4AF37]"
+                  className="w-full flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-[#D4AF37]/25 via-[#FAF7EE]/10 to-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#FAF7EE] active:scale-98 transition-all shadow-md cursor-pointer my-1"
                 >
-                  <Heart className="w-4 h-4" /> Wishlist ({wishlist.length})
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-[#D4AF37]/25 flex items-center justify-center text-[#D4AF37] shrink-0">
+                      <Smartphone className="w-4.5 h-4.5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-[#FAF7EE] leading-none">Download Android App</p>
+                      <p className="text-[10px] text-[#D4AF37] font-medium mt-0.5">Instant launch &amp; offline mode</p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-[#D4AF37] text-[#0A0A0E] text-[10px] font-extrabold uppercase tracking-wider">
+                    Install
+                  </span>
                 </button>
+
+                {/* Mobile View Simulator & Audit Trigger */}
+                <button
+                  onClick={() => {
+                    openPhonePreview();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between p-3 rounded-2xl bg-white/[0.04] hover:bg-[#D4AF37]/15 border border-white/10 text-[#FAF7EE] active:scale-98 transition-all cursor-pointer mb-1"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-[#D4AF37]/15 flex items-center justify-center text-[#F5DE88] shrink-0">
+                      <Smartphone className="w-4.5 h-4.5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-semibold text-[#FAF7EE] leading-none">Phone View Simulator</p>
+                      <p className="text-[10px] text-[#A6A295] mt-0.5">Inspect device frame &amp; audits</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono text-[#D4AF37]">
+                    Audit ➔
+                  </span>
+                </button>
+
+                {navItems.map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      item.action();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="text-left px-3 py-2 rounded-lg text-[#F3EFE6] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 text-base font-medium tracking-wide transition-all active:bg-[#D4AF37]/20"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+                <div className="pt-3 border-t border-white/10 flex items-center justify-around">
+                  <button
+                    onClick={() => {
+                      openAccount();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-2 text-xs text-[#DFDACD] hover:text-[#D4AF37] py-1.5 px-3 rounded-lg"
+                  >
+                    <User className="w-4 h-4" /> Account
+                  </button>
+                  <button
+                    onClick={() => {
+                      openWishlist();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-2 text-xs text-[#DFDACD] hover:text-[#D4AF37] py-1.5 px-3 rounded-lg"
+                  >
+                    <Heart className="w-4 h-4" /> Wishlist ({wishlist.length})
+                  </button>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>

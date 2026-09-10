@@ -10,7 +10,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "GROUND SPICES"
     ],
     "image": "/images/products-spices/black-pepper.png",
     "description": "Premium quality whole black peppercorns with intense aroma and sharp, robust flavor. Perfect for everyday cooking and seasoning.",
@@ -33,7 +34,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "GROUND SPICES"
     ],
     "image": "/images/products-spices/coriander-powder.png",
     "description": "Freshly ground coriander powder with intense aroma. Essential for curries and masalas.",
@@ -56,7 +58,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "BLENDED SPICES"
     ],
     "image": "/images/products-spices/chana-masala.png",
     "description": "Premium quality chana masala blend, perfect for authentic Punjabi chole and other chickpea dishes. Made with carefully selected whole spices.",
@@ -79,7 +82,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "GROUND SPICES"
     ],
     "image": "/images/products-spices/turmeric-powder.jpg",
     "description": "Pure and vibrant turmeric powder, essential for Indian cooking. Adds color and health benefits to dishes",
@@ -102,7 +106,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "BLENDED SPICES"
     ],
     "image": "/images/products-spices/chatpata-chat-masala.png",
     "description": "Tangy and spicy chat masala blend, perfect for street food, salads, and snacks. Made with premium quality spices.",
@@ -125,7 +130,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "BLENDED SPICES"
     ],
     "image": "/images/products-spices/chatpata-salad-masala.png",
     "description": "Special blend for salads with a perfect balance of tangy and spicy flavors. Enhances the taste of any salad.",
@@ -148,7 +154,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "BLENDED SPICES"
     ],
     "image": "/images/products-spices/chunky-chinese-masala.png",
     "description": "Special blend of spices for authentic Indo-Chinese cuisine. Perfect for noodles, fried rice, and Chinese-style vegetables.",
@@ -195,7 +202,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "BLENDED SPICES"
     ],
     "image": "/images/products-spices/dal-swad-masala.png",
     "description": "Special blend for enhancing the flavor of all types of dals and lentils. Creates rich and aromatic dal dishes.",
@@ -218,7 +226,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "BLENDED SPICES"
     ],
     "image": "/images/products-spices/garam-masala.png",
     "description": "Traditional Indian garam masala blend made with premium whole spices. Essential for authentic Indian cuisine.",
@@ -241,7 +250,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "GROUND SPICES"
     ],
     "image": "/images/products-spices/ginger-powder.png",
     "description": "Pure dried and ground ginger root. Perfect for cooking, baking, and making ginger tea.",
@@ -264,7 +274,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "GROUND SPICES"
     ],
     "image": "/images/products-spices/kashmiri-lal-mirch.png",
     "description": "Premium Kashmiri red chili powder known for its rich color and mild heat. Perfect for curries and marinades.",
@@ -287,7 +298,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "BLENDED SPICES"
     ],
     "image": "/images/products-spices/kitchen-king(sabzi masala).png",
     "description": "Versatile spice blend perfect for vegetables and everyday cooking. A must-have for Indian kitchen.",
@@ -310,7 +322,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "BLENDED SPICES"
     ],
     "image": "/images/products-spices/meat-masala.png",
     "description": "Special blend for meat dishes, perfect for creating rich and flavorful non-vegetarian curries.",
@@ -333,7 +346,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "BLENDED SPICES"
     ],
     "image": "/images/products-spices/pav-bhaji.png",
     "description": "Authentic blend for making Mumbai-style pav bhaji. Perfect balance of spices for street food flavor.",
@@ -357,6 +371,7 @@ export const PRODUCTS: Product[] = [
     "tags": [
       "ALL",
       "SPICES",
+      "BLENDED SPICES",
       "SEEDS"
     ],
     "image": "/images/products-spices/roasted-heeng-jeera.png",
@@ -380,7 +395,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "BLENDED SPICES"
     ],
     "image": "/images/products-spices/sambhar-masala.png",
     "description": "Authentic South Indian sambhar masala blend. Perfect for making traditional sambhar and other lentil dishes.",
@@ -403,7 +419,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "BLENDED SPICES"
     ],
     "image": "/images/products-spices/shahi-paneer(masala-mix).png",
     "description": "Premium blend for making restaurant-style shahi paneer. Creates rich and creamy curry base.",
@@ -426,7 +443,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "GROUND SPICES"
     ],
     "image": "/images/products-spices/yellow-chilli-powder.png",
     "description": "Unique yellow chilli powder with moderate heat level. Perfect for adding color and flavor to dishes.",
@@ -1075,7 +1093,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "GROUND SPICES"
     ],
     "image": "/images/products-spices/amchur-powder.png",
     "description": "Premium dried mango powder adding a tangy flavor to curries, snacks, and chutneys.",
@@ -1098,7 +1117,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "GROUND SPICES"
     ],
     "image": "/images/products-spices/lal-mirch-powder.png",
     "description": "Finely ground red chilli powder for strong flavor and vibrant color.",
@@ -1122,6 +1142,7 @@ export const PRODUCTS: Product[] = [
     "tags": [
       "ALL",
       "SPICES",
+      "GROUND SPICES",
       "SEEDS"
     ],
     "image": "/images/products-spices/rai-mustard.png",
@@ -1146,6 +1167,7 @@ export const PRODUCTS: Product[] = [
     "tags": [
       "ALL",
       "SPICES",
+      "GROUND SPICES",
       "SEEDS"
     ],
     "image": "/images/products-spices/ajwain.png",
@@ -1170,6 +1192,7 @@ export const PRODUCTS: Product[] = [
     "tags": [
       "ALL",
       "SPICES",
+      "GROUND SPICES",
       "SEEDS"
     ],
     "image": "/images/products-spices/jeera.png",
@@ -1216,7 +1239,8 @@ export const PRODUCTS: Product[] = [
     "category": "spices",
     "tags": [
       "ALL",
-      "SPICES"
+      "SPICES",
+      "GROUND SPICES"
     ],
     "image": "/images/products-spices/kasturi-methi.png",
     "description": "Aromatic dried fenugreek leaves enhancing flavor of Indian dishes.",

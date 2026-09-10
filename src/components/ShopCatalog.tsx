@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal, ArrowUpDown, X, Sparkles } from 'lucide-reac
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from './ProductCard';
 import { CategoryFilter, SortOption } from '../types';
+import { playLuxuryChime } from '../utils/sound';
 
 const CATEGORIES: CategoryFilter[] = [
   'ALL',
@@ -83,6 +84,7 @@ export const ShopCatalog: React.FC = () => {
     setPriceRange(2000);
     setSelectedWeight('all');
     setMinRating(0);
+    playLuxuryChime('click');
   };
 
   const isFiltered =
@@ -93,9 +95,9 @@ export const ShopCatalog: React.FC = () => {
     minRating > 0;
 
   return (
-    <section id="catalog" className="relative py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+    <section id="catalog" className="relative py-10 sm:py-16 px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
       {/* Section Header */}
-      <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
+      <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12 space-y-2 sm:space-y-3">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel-gold border border-[#D4AF37]/30 text-[#D4AF37] text-xs font-semibold tracking-wider uppercase">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Curated Harvest</span>
@@ -116,8 +118,11 @@ export const ShopCatalog: React.FC = () => {
             <button
               key={cat}
               id={`cat-pill-${cat.toLowerCase().replace(/\s+/g, '-')}`}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-5 py-2 rounded-full text-xs font-semibold tracking-wider uppercase whitespace-nowrap transition-all duration-300 border ${
+              onClick={() => {
+                setActiveCategory(cat);
+                playLuxuryChime('click');
+              }}
+              className={`px-5 py-2 rounded-full text-xs font-semibold tracking-wider uppercase whitespace-nowrap transition-all duration-300 border cursor-pointer ${
                 isActive
                   ? 'bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] border-[#D4AF37] shadow-[0_4px_18px_rgba(212,175,55,0.4)]'
                   : 'glass-panel border-white/10 text-[#DFDACD] hover:text-[#FFF] hover:border-[#D4AF37]/40 hover:bg-[#D4AF37]/10'

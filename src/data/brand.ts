@@ -26,10 +26,17 @@ export const BRAND_INFO = {
   name: "ARAJ DRY FRUITS & SPICES",
   tagline: "Premium Quality Since 1985",
   motto: "Pure • Premium • Authentic • Timeless",
+  chefTagline: "Apne Andar Ke Chef Ko Jagao!",
+  chefTaglineSub: "Awaken The Master Chef Within You with Authentic Agra Masale",
+  qualityPromise: "Zero Compromise on Quality, Zero Compromise on Taste",
   founded: 1985,
-  phone: "+91 99171 04448",
+  phone: "+91 89792 21409 / +91 99171 04448",
+  whatsapp: "+91 89792 21409",
+  whatsappNumber: "918979221409",
   email: "ankurkaushal0016@gmail.com",
   address: "11/48-E, Near Apsara Talkies, Hathras Road, Naraich, Agra-282006 (U.P.), India",
+  fssaiLic: "12723001000845",
+  agmarkStandard: "Grade A Special AGMARK Certified",
   description: "Since 1985, Araj has been a trusted symbol of unmatched purity and heritage in Indian dry fruits and spices. What began as a humble family enterprise in Agra has evolved into a celebrated luxury brand cherished by thousands of families seeking uncompromised aroma, richness, and culinary tradition.",
   vision: "To bring royal Indian culinary authenticity and nutrient-rich natural delicacies to modern discerning homes worldwide with futuristic precision and timeless purity."
 };

@@ -14,7 +14,7 @@ export const AccountModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-6 overflow-y-auto">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -29,10 +29,10 @@ export const AccountModal: React.FC = () => {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-xl bg-[#0F0F17] border border-[#D4AF37]/35 rounded-3xl shadow-2xl overflow-hidden z-10 my-8 max-h-[90vh] flex flex-col"
+          className="relative w-full max-w-xl bg-[#0F0F17] border border-[#D4AF37]/35 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-10 my-4 sm:my-8 max-h-[92vh] flex flex-col"
         >
           {/* Header */}
-          <div className="p-5 sm:p-6 border-b border-white/10 flex items-center justify-between bg-[#141420]">
+          <div className="p-4 sm:p-6 border-b border-white/10 flex items-center justify-between bg-[#141420]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/20 border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37]">
                 <User className="w-5 h-5" />

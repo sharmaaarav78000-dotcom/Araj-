@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, ShieldCheck, CheckCircle2, Truck, CreditCard, Banknote, 
-  QrCode, ArrowLeft, ArrowRight, Sparkles, MapPin, Phone, Mail, User, Package
+  QrCode, ArrowLeft, ArrowRight, Sparkles, MapPin, Phone, Mail, User, Package, MessageCircle, ExternalLink
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { CustomerInfo, Order } from '../types';
@@ -30,11 +30,43 @@ export const CheckoutModal: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cod' | 'netbanking'>('upi');
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [whatsAppUrl, setWhatsAppUrl] = useState<string>('');
 
   if (!isCheckoutOpen) return null;
 
   const shippingCharge = cartTotal >= 499 ? 0 : 50;
   const finalTotal = cartTotal + shippingCharge;
+
+  const generateWhatsAppUrl = (order: Order) => {
+    const itemsList = order.items
+      .map((item, index) => `${index + 1}. *${item.product.name}* (${item.product.weight || 'Standard'}) - Qty: ${item.quantity} - ₹${item.product.price * item.quantity}`)
+      .join('\n');
+
+    const message = `🛍️ *NEW ORDER - ARAJ DRY FRUITS & SPICES*
+━━━━━━━━━━━━━━━━━━━━━
+*Order ID:* ${order.id}
+*Date:* ${new Date(order.createdAt).toLocaleString('en-IN')}
+
+📦 *ITEMS ORDERED:*
+${itemsList}
+
+💰 *Subtotal:* ₹${order.subtotal}
+🚚 *Shipping:* ${order.shipping === 0 ? 'FREE' : `₹${order.shipping}`}
+🏷️ *Total Price:* ₹${order.total}
+💳 *Payment Mode:* ${order.customer.paymentMethod.toUpperCase()}
+
+📍 *CUSTOMER & DELIVERY ADDRESS:*
+*Name:* ${order.customer.name}
+*Phone:* ${order.customer.phone}
+*Email:* ${order.customer.email || 'N/A'}
+*Address:* ${order.customer.address}, ${order.customer.city}, ${order.customer.state} - ${order.customer.pincode}
+${order.customer.notes ? `*Delivery Instructions:* ${order.customer.notes}` : ''}
+━━━━━━━━━━━━━━━━━━━━━
+_Order placed via official ARAJ website._`;
+
+    const targetPhone = '918979221409';
+    return `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -59,6 +91,15 @@ export const CheckoutModal: React.FC = () => {
       setPlacedOrder(order);
       setIsProcessing(false);
       setStep('success');
+
+      // Generate WhatsApp order message and URL
+      const waLink = generateWhatsAppUrl(order);
+      setWhatsAppUrl(waLink);
+
+      // Automatically redirect to WhatsApp phone number 8979221409 with order details
+      setTimeout(() => {
+        window.location.href = waLink;
+      }, 1500);
     }, 1200);
   };
 
@@ -70,7 +111,7 @@ export const CheckoutModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-6 overflow-y-auto">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -85,10 +126,10 @@ export const CheckoutModal: React.FC = () => {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-2xl bg-[#0F0F17] border border-[#D4AF37]/30 rounded-3xl shadow-2xl overflow-hidden z-10 my-8 max-h-[90vh] flex flex-col"
+          className="relative w-full max-w-2xl bg-[#0F0F17] border border-[#D4AF37]/30 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-10 my-4 sm:my-8 max-h-[92vh] flex flex-col"
         >
           {/* Top Bar */}
-          <div className="p-5 sm:p-6 border-b border-white/10 flex items-center justify-between bg-[#141420]">
+          <div className="p-4 sm:p-6 border-b border-white/10 flex items-center justify-between bg-[#141420]">
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-cinzel text-xs tracking-widest text-[#D4AF37]">ARAJ COUTURE FOODS</span>
@@ -393,6 +434,32 @@ export const CheckoutModal: React.FC = () => {
                     <div className="text-[#A6A295]">Shipping to:</div>
                     <div className="text-[#FAF7EE]">{placedOrder.customer.address}, {placedOrder.customer.city}</div>
                   </div>
+                </div>
+
+                {/* WhatsApp Auto-Redirect Card */}
+                <div className="p-4 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/30 text-left space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[#25D366] font-bold text-xs uppercase tracking-wider">
+                      <MessageCircle className="w-4 h-4 animate-bounce" />
+                      <span>Redirecting to WhatsApp (+91 8979221409)...</span>
+                    </div>
+                    <span className="text-[11px] text-[#A6A295]">Auto-Sending Order</span>
+                  </div>
+                  <p className="text-xs text-[#E1DACB] leading-relaxed">
+                    Opening WhatsApp to send your complete order summary (items, prices, and delivery address) directly to <strong>8979221409</strong>.
+                  </p>
+                  {whatsAppUrl && (
+                    <a
+                      href={whatsAppUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-black font-bold text-xs transition-all shadow-md mt-1"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      <span>Open WhatsApp Chat Now</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
                 </div>
 
                 <div className="p-3 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-xs text-[#E1DACB] flex items-center justify-center gap-2">

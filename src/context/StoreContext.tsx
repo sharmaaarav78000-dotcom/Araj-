@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product, CartItem, Order, CustomerInfo } from '../types';
+import { Product, CartItem, Order, CustomerInfo, DistributorInquiry } from '../types';
 import { PRODUCTS } from '../data/products';
 import { playLuxuryChime } from '../utils/sound';
 
@@ -43,14 +43,28 @@ interface StoreContextType {
   isScannerOpen: boolean;
   isHamperOpen: boolean;
   isAiChatOpen: boolean;
+  isInstallModalOpen: boolean;
+  isPhonePreviewOpen: boolean;
+  isDistributorModalOpen: boolean;
+  isThreeDAtelierOpen: boolean;
+  threeDProduct: Product | null;
   scannedProduct: Product | null;
   openScanner: (product?: Product) => void;
   closeScanner: () => void;
+  openThreeDAtelier: (product?: Product) => void;
+  closeThreeDAtelier: () => void;
   openHamper: () => void;
   closeHamper: () => void;
   openAiChat: () => void;
   closeAiChat: () => void;
   toggleAiChat: () => void;
+  openInstallModal: () => void;
+  closeInstallModal: () => void;
+  openPhonePreview: () => void;
+  closePhonePreview: () => void;
+  openDistributorModal: () => void;
+  closeDistributorModal: () => void;
+  submitDistributorInquiry: (inquiry: Omit<DistributorInquiry, 'id' | 'createdAt'>) => void;
   openCheckout: () => void;
   closeCheckout: () => void;
   lastOrder: Order | null;
@@ -101,6 +115,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isHamperOpen, setIsHamperOpen] = useState(false);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
+  const [isPhonePreviewOpen, setIsPhonePreviewOpen] = useState(false);
+  const [isDistributorModalOpen, setIsDistributorModalOpen] = useState(false);
+  const [isThreeDAtelierOpen, setIsThreeDAtelierOpen] = useState(false);
+  const [threeDProduct, setThreeDProduct] = useState<Product | null>(null);
   const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
@@ -180,6 +199,51 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const toggleAiChat = () => {
     setIsAiChatOpen((prev) => !prev);
     playLuxuryChime('click');
+  };
+
+  const openInstallModal = () => {
+    setIsInstallModalOpen(true);
+    playLuxuryChime('click');
+  };
+  const closeInstallModal = () => setIsInstallModalOpen(false);
+
+  const openPhonePreview = () => {
+    setIsPhonePreviewOpen(true);
+    playLuxuryChime('click');
+  };
+  const closePhonePreview = () => setIsPhonePreviewOpen(false);
+
+  const openDistributorModal = () => {
+    setIsDistributorModalOpen(true);
+    playLuxuryChime('click');
+  };
+  const closeDistributorModal = () => setIsDistributorModalOpen(false);
+
+  const openThreeDAtelier = (product?: Product) => {
+    setThreeDProduct(product || products[0] || null);
+    setIsThreeDAtelierOpen(true);
+    playLuxuryChime('sparkle');
+  };
+  const closeThreeDAtelier = () => {
+    setIsThreeDAtelierOpen(false);
+  };
+
+  const submitDistributorInquiry = (inquiryData: Omit<DistributorInquiry, 'id' | 'createdAt'>) => {
+    const newInquiry: DistributorInquiry = {
+      ...inquiryData,
+      id: `DIST-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    try {
+      const existing = localStorage.getItem('araj_distributor_inquiries');
+      const list = existing ? JSON.parse(existing) : [];
+      list.push(newInquiry);
+      localStorage.setItem('araj_distributor_inquiries', JSON.stringify(list));
+    } catch (e) {
+      console.error(e);
+    }
+    playLuxuryChime('success');
+    showToast('Inquiry submitted! Our Agra office will connect shortly.');
   };
 
   const openProductDetail = (product: Product) => {
@@ -309,6 +373,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         openAiChat,
         closeAiChat,
         toggleAiChat,
+        isInstallModalOpen,
+        openInstallModal,
+        closeInstallModal,
+        isPhonePreviewOpen,
+        openPhonePreview,
+        closePhonePreview,
+        isDistributorModalOpen,
+        openDistributorModal,
+        closeDistributorModal,
+        submitDistributorInquiry,
+        isThreeDAtelierOpen,
+        threeDProduct,
+        openThreeDAtelier,
+        closeThreeDAtelier,
         selectedProduct,
         activeCategory,
         searchQuery,
