@@ -37,7 +37,7 @@ const RECIPE_PAIRINGS: RecipePairing[] = [
     difficulty: 'Chef Secret',
     chefQuote: 'Layer long-grain basmati with slow-ground Garam Masala and Kashmiri Lal Mirch for radiant natural saffron hue without artificial dyes, garnished with toasted almonds.',
     icon: '🍛',
-    spiceIds: ['SPC-10', 'SPC-12', 'SPC-1', 'DF-1']
+    spiceIds: ['SPC-10', 'SPC-12', 'SPC-1', 'DF-42']
   },
   {
     id: 'dal-swad',
@@ -70,7 +70,7 @@ const RECIPE_PAIRINGS: RecipePairing[] = [
     difficulty: 'Medium',
     chefQuote: 'Blend soaked ARAJ premium cashews into your tomato gravy and stir in Shahi Paneer Masala and Kitchen King for a velvety, restaurant-style aromatic curry.',
     icon: '🧀',
-    spiceIds: ['SPC-18', 'SPC-13', 'DF-2']
+    spiceIds: ['SPC-18', 'SPC-13', 'DF-40']
   },
   {
     id: 'masala-chai',
@@ -81,7 +81,7 @@ const RECIPE_PAIRINGS: RecipePairing[] = [
     difficulty: 'Easy',
     chefQuote: 'Infuse stone-ground Sonth (ginger powder) and cracked black pepper with crushed fennel in boiling milk for soothing digestion and authentic North Indian morning cheer.',
     icon: '☕',
-    spiceIds: ['SPC-11', 'SPC-8', 'SPC-1', 'DF-4']
+    spiceIds: ['SPC-11', 'SPC-8', 'SPC-1', 'DF-41']
   }
 ];
 
@@ -145,10 +145,10 @@ export const ChefKitchenExplorer: React.FC = () => {
                 setAddedAll(false);
                 playLuxuryChime('click');
               }}
-              className={`p-3 sm:p-4 rounded-2xl text-left transition-all duration-300 border flex flex-col justify-between cursor-pointer ${
+              className={`p-3 sm:p-4 rounded-2xl text-left transition-all duration-300 border flex flex-col justify-between cursor-pointer glass-btn ${
                 isSelected
-                  ? 'bg-gradient-to-b from-[#D4AF37]/25 to-[#1A1A24] border-[#D4AF37] shadow-[0_8px_25px_rgba(212,175,55,0.25)] scale-[1.02]'
-                  : 'bg-[#12121A]/80 hover:bg-[#1A1A24]/90 border-white/10 hover:border-[#D4AF37]/30'
+                  ? 'glass-btn-gold text-[#0A0A0E] shadow-[0_8px_25px_rgba(212,175,55,0.25)] scale-[1.02]'
+                  : 'text-[#DFDACD]'
               }`}
             >
               <div className="text-2xl sm:text-3xl mb-2">{recipe.icon}</div>
@@ -156,10 +156,10 @@ export const ChefKitchenExplorer: React.FC = () => {
                 <p className="text-[10px] uppercase font-mono tracking-wider text-[#D4AF37] font-semibold">
                   {recipe.prepTime}
                 </p>
-                <h4 className={`text-xs sm:text-sm font-bold line-clamp-1 ${isSelected ? 'text-[#FFF]' : 'text-[#DFDACD]'}`}>
+                <h4 className={`text-xs sm:text-sm font-bold line-clamp-1 ${isSelected ? 'text-[#0A0A0E]' : 'text-[#FAF7EE]'}`}>
                   {recipe.title}
                 </h4>
-                <p className="text-[10px] text-[#A6A295] font-hindi line-clamp-1 mt-0.5">
+                <p className={`text-[10px] font-hindi line-clamp-1 mt-0.5 ${isSelected ? 'text-[#333]' : 'text-[#A6A295]'}`}>
                   {recipe.hindiTitle}
                 </p>
               </div>
@@ -229,10 +229,10 @@ export const ChefKitchenExplorer: React.FC = () => {
               <button
                 id={`add-all-spices-${currentRecipe.id}`}
                 onClick={handleAddAllToCart}
-                className={`px-5 py-3 rounded-full font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer ${
+                className={`px-5 py-3 rounded-full font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   addedAll
-                    ? 'bg-[#48BB78] text-white shadow-[0_0_20px_rgba(72,187,120,0.5)]'
-                    : 'bg-gradient-to-r from-[#D4AF37] to-[#E69C36] hover:from-[#E69C36] hover:to-[#D4AF37] text-[#0A0A0F] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)]'
+                    ? 'glass-btn-emerald text-emerald-300'
+                    : 'glass-btn-gold text-[#0A0A0F]'
                 }`}
               >
                 {addedAll ? (
@@ -260,7 +260,7 @@ export const ChefKitchenExplorer: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {pairingProducts.map((spice) => (
                 <div
-                  key={spice.id}
+                  key={`${currentRecipe.id}-${spice.id}`}
                   className="rounded-2xl p-3.5 bg-[#171724]/90 border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 transition-all flex items-center gap-3.5 group"
                 >
                   <div className="w-16 h-16 rounded-xl bg-[#F8F5EE] p-1.5 flex items-center justify-center shrink-0 border border-white/20 shadow-md">
@@ -297,7 +297,7 @@ export const ChefKitchenExplorer: React.FC = () => {
                       playLuxuryChime('add');
                     }}
                     title={`Add ${spice.name} to cart`}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-[#D4AF37] text-[#D4AF37] hover:text-[#0E0E14] transition-colors shrink-0 cursor-pointer"
+                    className="p-2 rounded-xl glass-btn-icon text-[#D4AF37] hover:text-[#0E0E14] shrink-0 cursor-pointer"
                   >
                     <ShoppingBag className="w-3.5 h-3.5" />
                   </button>

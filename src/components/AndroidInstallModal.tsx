@@ -54,11 +54,12 @@ export const AndroidInstallModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-xl">
+      <div key="android-install-wrapper" className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-xl">
         {/* Backdrop click to dismiss */}
-        <div className="fixed inset-0" onClick={closeInstallModal} />
+        <div key="android-install-backdrop" className="fixed inset-0" onClick={closeInstallModal} />
 
         <motion.div
+          key="android-install-dialog"
           initial={{ opacity: 0, scale: 0.95, y: 25 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 25 }}
@@ -69,7 +70,7 @@ export const AndroidInstallModal: React.FC = () => {
           <button
             onClick={closeInstallModal}
             aria-label="Close Android App Modal"
-            className="absolute top-4 right-4 p-2 rounded-full glass-panel text-[#DFDACD] hover:text-white hover:bg-white/10 transition-colors z-20 cursor-pointer"
+            className="absolute top-4 right-4 p-2 rounded-full glass-btn-icon text-[#DFDACD] hover:text-white z-20 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -109,8 +110,8 @@ export const AndroidInstallModal: React.FC = () => {
               onClick={() => setActiveTab('direct')}
               className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === 'direct'
-                  ? 'bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] shadow-md font-bold'
-                  : 'glass-panel text-[#DFDACD] hover:text-white'
+                  ? 'glass-btn-gold text-[#0A0A0E] font-bold'
+                  : 'glass-btn-pill text-[#DFDACD] hover:text-white'
               }`}
             >
               <Download className="w-3.5 h-3.5" />
@@ -120,8 +121,8 @@ export const AndroidInstallModal: React.FC = () => {
               onClick={() => setActiveTab('apk')}
               className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === 'apk'
-                  ? 'bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] shadow-md font-bold'
-                  : 'glass-panel text-[#DFDACD] hover:text-white'
+                  ? 'glass-btn-gold text-[#0A0A0E] font-bold'
+                  : 'glass-btn-pill text-[#DFDACD] hover:text-white'
               }`}
             >
               <ExternalLink className="w-3.5 h-3.5" />
@@ -147,7 +148,7 @@ export const AndroidInstallModal: React.FC = () => {
                 <button
                   onClick={handleTriggerInstall}
                   disabled={isInstalling}
-                  className="w-full group relative py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#D4AF37] via-[#F5DE88] to-[#C59F2D] text-[#0A0A0E] font-bold text-sm tracking-wider uppercase shadow-[0_12px_35px_rgba(212,175,55,0.4)] hover:shadow-[0_16px_45px_rgba(212,175,55,0.6)] transition-all duration-300 flex items-center justify-center gap-2.5 overflow-hidden cursor-pointer active:scale-98"
+                  className="w-full group relative py-3.5 px-6 rounded-2xl glass-btn-gold text-[#0A0A0E] font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-2.5 overflow-hidden cursor-pointer"
                 >
                   <Download className="w-4.5 h-4.5 text-[#0A0A0E] group-hover:-translate-y-0.5 transition-transform" />
                   <span>
@@ -157,7 +158,6 @@ export const AndroidInstallModal: React.FC = () => {
                       ? 'INSTALL ON ANDROID NOW'
                       : 'DOWNLOAD / ADD TO HOME SCREEN'}
                   </span>
-                  <div className="absolute inset-0 bg-white/25 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 </button>
               )}
 
@@ -327,7 +327,7 @@ export const AndroidInstallModal: React.FC = () => {
                   href={`https://www.pwabuilder.com?url=${encodeURIComponent(currentUrl)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] text-xs font-bold flex items-center justify-center gap-1.5 hover:brightness-110 transition-all cursor-pointer text-center"
+                  className="flex-1 py-2.5 px-4 rounded-xl glass-btn-gold text-[#0A0A0E] text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer text-center"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>Open PWABuilder (1-Click AAB)</span>
@@ -335,7 +335,7 @@ export const AndroidInstallModal: React.FC = () => {
 
                 <button
                   onClick={handleCopyLink}
-                  className="py-2.5 px-4 rounded-xl glass-panel border border-[#D4AF37]/40 text-[#FAF7EE] hover:border-[#D4AF37] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  className="py-2.5 px-4 rounded-xl glass-btn-secondary text-[#FAF7EE] text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {copied ? <Check className="w-3.5 h-3.5 text-[#48BB78]" /> : <Copy className="w-3.5 h-3.5 text-[#D4AF37]" />}
                   <span>{copied ? 'Copied!' : 'Copy Store URL'}</span>

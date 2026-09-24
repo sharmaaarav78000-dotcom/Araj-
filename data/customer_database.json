@@ -1,0 +1,76 @@
+{
+  "customers": [
+    {
+      "id": "CUST-198501",
+      "email": "concierge@arajpure.com",
+      "name": "Royal Heritage Concierge",
+      "phone": "+91 99171 04448",
+      "address": "11/48-E, Near Apsara Talkies, Hathras Road, Naraich",
+      "city": "Agra",
+      "state": "Uttar Pradesh",
+      "pincode": "282006",
+      "provider": "local",
+      "tier": "Imperial Patron",
+      "totalOrders": 12,
+      "totalSpent": 18450,
+      "createdAt": "2026-09-10T16:10:27.337Z",
+      "updatedAt": "2026-09-10T16:10:27.337Z",
+      "lastLoginAt": "2026-09-10T16:10:27.337Z",
+      "notes": "VIP Agra Heritage Member"
+    },
+    {
+      "id": "CUST-677614",
+      "email": "agra_patron@example.com",
+      "name": "agra_patron",
+      "phone": "+91 98765 43210",
+      "address": "Taj Ganj, Agra, UP 282001",
+      "city": "Agra",
+      "state": "Uttar Pradesh",
+      "pincode": "282006",
+      "provider": "local",
+      "tier": "Royal Gold",
+      "totalOrders": 1,
+      "totalSpent": 560,
+      "avatar": "",
+      "createdAt": "2026-09-10T16:11:17.614Z",
+      "updatedAt": "2026-09-10T16:11:24.179Z",
+      "lastLoginAt": "2026-09-10T16:11:17.614Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ORD-TEST-1",
+      "customerEmail": "agra_patron@example.com",
+      "customerName": "agra_patron",
+      "customerPhone": "+91 98765 43210",
+      "shippingAddress": "Taj Ganj, Agra",
+      "city": "Agra",
+      "state": "Uttar Pradesh",
+      "pincode": "",
+      "paymentMethod": "cod",
+      "items": [
+        {
+          "id": "sp-1",
+          "name": "Royal Agra Shahi Garam Masala",
+          "price": 280,
+          "quantity": 2,
+          "weight": ""
+        }
+      ],
+      "subtotal": 560,
+      "discount": 0,
+      "shipping": 0,
+      "total": 560,
+      "status": "Confirmed",
+      "createdAt": "2026-09-10T16:11:17.614Z"
+    }
+  ],
+  "distributorInquiries": [],
+  "meta": {
+    "engine": "ARAJ Sovereign Customer Base (File-Backed JSON Database Engine)",
+    "version": "2.0.0",
+    "lastPersisted": "2026-09-10T16:11:24.179Z",
+    "totalCustomers": 2,
+    "totalOrders": 1
+  }
+}

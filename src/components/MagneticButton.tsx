@@ -46,7 +46,7 @@ export const MagneticButton: React.FC<MagneticButtonProps> = ({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
-      className={className}
+      className={`glass-btn ${className}`}
       {...rest}
     >
       {children}

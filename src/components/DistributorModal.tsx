@@ -63,18 +63,16 @@ export const DistributorModal: React.FC = () => {
     }, 4000);
   };
 
-  const handleDirectWhatsApp = () => {
-    const text = encodeURIComponent(
-      `Hello ARAJ Spices Agra! I am interested in B2B / Dealership & Wholesale for pure spices & dry fruits.\nName: ${formData.fullName || 'Business Owner'}\nBusiness: ${formData.businessName || 'Store'}\nCity: ${formData.city || 'India'}`
-    );
-    window.open(`https://wa.me/${BRAND_INFO.whatsappNumber}?text=${text}`, '_blank');
-  };
+  const whatsAppUrl = `https://wa.me/${BRAND_INFO.whatsappNumber}?text=${encodeURIComponent(
+    `Hello ARAJ Spices Agra! I am interested in B2B / Dealership & Wholesale for pure spices & dry fruits.\nName: ${formData.fullName || 'Business Owner'}\nBusiness: ${formData.businessName || 'Store'}\nCity: ${formData.city || 'India'}`
+  )}`;
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div key="distributor-modal-wrapper" className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
         {/* Backdrop */}
         <motion.div
+          key="distributor-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -84,6 +82,7 @@ export const DistributorModal: React.FC = () => {
 
         {/* Modal Container */}
         <motion.div
+          key="distributor-dialog"
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -95,7 +94,7 @@ export const DistributorModal: React.FC = () => {
           {/* Close button */}
           <button
             onClick={closeDistributorModal}
-            className="absolute top-5 right-5 p-2 rounded-full bg-white/5 hover:bg-white/10 text-[#A6A295] hover:text-white transition-colors cursor-pointer"
+            className="absolute top-5 right-5 p-2 rounded-full glass-btn-icon text-[#A6A295] hover:text-white cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -112,13 +111,15 @@ export const DistributorModal: React.FC = () => {
                 Thank you for your interest in partnering with ARAJ Agra. Our institutional sales team will review your requirements and reach out within 24 hours.
               </p>
               <div className="pt-4">
-                <button
-                  onClick={handleDirectWhatsApp}
-                  className="px-6 py-3 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold uppercase tracking-wider inline-flex items-center gap-2 shadow-lg"
+                <a
+                  href={whatsAppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3 rounded-full glass-btn-emerald text-emerald-300 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-2 cursor-pointer hover:brightness-110 shadow-md"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>Chat with Agra Factory on WhatsApp</span>
-                </button>
+                </a>
               </div>
             </div>
           ) : (
@@ -269,20 +270,21 @@ export const DistributorModal: React.FC = () => {
                 <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
                   <button
                     type="submit"
-                    className="w-full sm:w-auto flex-1 py-3 px-6 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E69C36] hover:from-[#E69C36] hover:to-[#D4AF37] text-[#0E0E14] text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                    className="w-full sm:w-auto flex-1 py-3 px-6 rounded-xl glass-btn-gold text-[#0E0E14] text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Send className="w-4 h-4" />
                     <span>Submit Dealership Inquiry</span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={handleDirectWhatsApp}
-                    className="w-full sm:w-auto py-3 px-5 rounded-xl bg-[#25D366]/20 hover:bg-[#25D366]/30 border border-[#25D366]/40 text-[#25D366] text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                  <a
+                    href={whatsAppUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto py-3 px-5 rounded-xl glass-btn-emerald text-emerald-300 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer hover:brightness-110 shadow-md"
                   >
                     <MessageCircle className="w-4 h-4" />
                     <span>Instant WhatsApp</span>
-                  </button>
+                  </a>
                 </div>
               </form>
             </div>

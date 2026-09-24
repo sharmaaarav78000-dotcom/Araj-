@@ -9,6 +9,7 @@ export const SearchModal: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const popularSearches = [
+    'Peri Peri Masala',
     'Chana Masala',
     'Haldi',
     'Garam Masala',
@@ -34,9 +35,10 @@ export const SearchModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4">
+      <div key="search-modal-wrapper" className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4">
         {/* Backdrop */}
         <motion.div
+          key="search-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -46,6 +48,7 @@ export const SearchModal: React.FC = () => {
 
         {/* Search Modal */}
         <motion.div
+          key="search-dialog"
           initial={{ opacity: 0, y: -20, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.98 }}
@@ -65,14 +68,14 @@ export const SearchModal: React.FC = () => {
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="text-[#88847A] hover:text-white text-xs p-1"
+                className="text-[#88847A] hover:text-white text-xs p-1 cursor-pointer"
               >
                 Clear
               </button>
             )}
             <button
               onClick={closeSearch}
-              className="p-1.5 rounded-full text-[#DFDACD] hover:text-white hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-full glass-btn-icon text-[#DFDACD] hover:text-white"
             >
               <X className="w-5 h-5" />
             </button>
@@ -90,7 +93,7 @@ export const SearchModal: React.FC = () => {
                     <button
                       key={term}
                       onClick={() => setSearchTerm(term)}
-                      className="px-3.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-[#DFDACD] hover:border-[#D4AF37]/40 hover:text-[#D4AF37] transition-all"
+                      className="px-3.5 py-1.5 rounded-xl glass-btn-pill text-xs text-[#DFDACD] hover:text-[#D4AF37] cursor-pointer"
                     >
                       {term}
                     </button>
@@ -148,7 +151,7 @@ export const SearchModal: React.FC = () => {
                               addToCart(product);
                               closeSearch();
                             }}
-                            className="px-3 py-1.5 rounded-lg bg-[#D4AF37] text-[#0A0A0E] text-xs font-bold hover:brightness-110"
+                            className="px-3 py-1.5 rounded-lg glass-btn-gold text-[#0A0A0E] text-xs font-bold cursor-pointer"
                           >
                             Add
                           </button>

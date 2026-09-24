@@ -15,13 +15,21 @@ import {
   Pause,
   Play,
   Sparkles,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Volume2
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Product } from '../types';
 import { MagneticButton } from './MagneticButton';
 import { triggerParticleBurst } from '../utils/effects';
-import { playLuxuryChime } from '../utils/sound';
+import { 
+  playLuxuryChime, 
+  playSlideSound, 
+  SLIDE_SOUND_STYLES, 
+  getSlideSoundStyle, 
+  setSlideSoundStyle, 
+  SlideSoundStyle 
+} from '../utils/sound';
 import { FloatingBadam, FloatingCashew, FloatingPista, FloatingKishmish } from './FloatingDryFruits';
 
 interface HeroProps {
@@ -55,6 +63,17 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
   const [direction, setDirection] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [soundStyle, setSoundStyleState] = useState<SlideSoundStyle>(() => getSlideSoundStyle());
+
+  const handleCycleSoundStyle = () => {
+    const currentIdx = SLIDE_SOUND_STYLES.findIndex((s) => s.id === soundStyle);
+    const nextIdx = (currentIdx + 1) % SLIDE_SOUND_STYLES.length;
+    const nextStyle = SLIDE_SOUND_STYLES[nextIdx].id;
+    setSoundStyleState(nextStyle);
+    setSlideSoundStyle(nextStyle);
+    // Audition preview of the selected luxury sound effect
+    playSlideSound(1, nextStyle);
+  };
 
   const SLIDE_DURATION = 6000; // 6 seconds per slide
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -134,7 +153,7 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
     setCurrentSlide((newIdx + totalSlides) % totalSlides);
     setProgress(0);
     if (isUserAction) {
-      playLuxuryChime('sparkle');
+      playSlideSound(newDir >= 0 ? 1 : -1);
     }
   }, [totalSlides]);
 
@@ -263,7 +282,7 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
       <div className="absolute bottom-10 right-10 w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] rounded-full bg-radial from-[#E69C36]/15 via-transparent to-transparent blur-[90px] sm:blur-[130px] pointer-events-none" />
 
       {/* Main Slider Content Container */}
-      <div className="relative min-h-[580px] sm:min-h-[550px] lg:min-h-[560px] flex items-center">
+      <div className="relative min-h-0 sm:min-h-[550px] lg:min-h-[560px] flex items-center w-full">
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
             key={currentSlide}
@@ -275,14 +294,14 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
             className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center relative z-10"
           >
             {/* Left Column: Headline, Brand Pillars & CTAs */}
-            <div className="lg:col-span-6 xl:col-span-7 space-y-5 sm:space-y-6 text-left">
+            <div className="w-full lg:col-span-6 xl:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left flex flex-col items-center lg:items-start">
               
               {/* Badge */}
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/45 text-[#F5DE88] text-[10px] sm:text-xs font-semibold tracking-wider uppercase shadow-[0_0_20px_rgba(212,175,55,0.15)]"
+                className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/45 text-[#F5DE88] text-[10px] sm:text-xs font-semibold tracking-wider uppercase shadow-[0_0_20px_rgba(212,175,55,0.15)] mx-auto lg:mx-0"
               >
                 {currentData.type === 'chef' ? (
                   <ChefHat className="w-3.5 h-3.5 text-[#D4AF37]" />
@@ -293,12 +312,12 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
               </motion.div>
 
               {/* Main Dynamic Headline */}
-              <div className="space-y-2 sm:space-y-3">
+              <div className="space-y-2 sm:space-y-3 w-full text-center lg:text-left">
                 <motion.h1
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.15 }}
-                  className="font-serif text-3xl xs:text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-[#FAF7EE] leading-[1.1] sm:leading-[1.08]"
+                  className="font-serif text-3xl xs:text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-[#FAF7EE] leading-[1.15] sm:leading-[1.08] text-center lg:text-left"
                 >
                   {currentData.headingLine1} <br />
                   <span className={currentData.isItalicHighlight ? 'gold-gradient-text font-serif italic' : 'text-white/95'}>
@@ -311,7 +330,7 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="font-hindi text-sm sm:text-lg text-[#F5DE88] font-semibold"
+                  className="font-hindi text-sm sm:text-lg text-[#F5DE88] font-semibold text-center lg:text-left"
                 >
                   {currentData.hindiTagline}
                 </motion.p>
@@ -322,7 +341,7 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.25 }}
-                className="text-xs sm:text-base text-[#DFDACD] max-w-xl font-light leading-relaxed"
+                className="text-xs sm:text-base text-[#DFDACD] max-w-xl mx-auto lg:mx-0 font-light leading-relaxed text-center lg:text-left"
               >
                 {currentData.description}
               </motion.p>
@@ -332,23 +351,23 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="flex flex-col xs:flex-row flex-wrap items-stretch xs:items-center gap-3 pt-1"
+                className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-2.5 sm:gap-3 pt-1 w-full max-w-md mx-auto lg:mx-0"
               >
                 {/* SHOP NOW Button */}
                 <MagneticButton
                   id="hero-slider-shop-btn"
                   onClick={() => handleShopAction(currentData.ctaCategory)}
-                  className="flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full bg-gradient-to-r from-[#D4AF37] via-[#E6CA65] to-[#C59F2D] text-[#0A0A0E] font-extrabold text-xs uppercase tracking-widest shadow-[0_8px_30px_rgba(212,175,55,0.45)] hover:shadow-[0_10px_35px_rgba(212,175,55,0.65)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer w-full xs:w-auto"
+                  className="glass-btn-gold flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 rounded-full text-[#0A0A0E] font-extrabold text-xs uppercase tracking-widest cursor-pointer w-full sm:w-auto"
                 >
                   <span>SHOP NOW</span>
                   <ArrowRight className="w-4 h-4 text-[#0A0A0E]" />
                 </MagneticButton>
 
                 {/* Secondary Action */}
-                <div className="flex items-center gap-2 w-full xs:w-auto">
+                <div className="flex items-center justify-center gap-2 w-full sm:w-auto">
                   <MagneticButton
                     onClick={scrollToChefKitchen}
-                    className="flex-1 xs:flex-initial flex items-center justify-center gap-1.5 px-4 sm:px-5 py-3.5 rounded-full bg-[#161622] hover:bg-[#1E1E2E] border border-[#D4AF37]/50 text-[#FAF7EE] text-xs font-semibold uppercase tracking-wider transition-all duration-300 cursor-pointer"
+                    className="glass-btn-secondary flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 sm:px-5 py-3.5 rounded-full text-[#FAF7EE] text-xs font-semibold uppercase tracking-wider cursor-pointer"
                   >
                     <ChefHat className="w-3.5 h-3.5 text-[#D4AF37]" />
                     <span>CHEF RECIPES</span>
@@ -356,10 +375,10 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
 
                   <MagneticButton
                     onClick={openDistributorModal}
-                    className="flex-1 xs:flex-initial flex items-center justify-center gap-1.5 px-4 py-3.5 rounded-full bg-gradient-to-r from-[#D4AF37]/20 to-[#E69C36]/20 hover:from-[#D4AF37]/35 hover:to-[#E69C36]/35 border border-[#D4AF37]/50 text-[#F5DE88] text-xs font-semibold tracking-wider uppercase transition-all duration-300 cursor-pointer"
+                    className="glass-btn-pill flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-3.5 rounded-full text-[#F5DE88] text-xs font-semibold tracking-wider uppercase cursor-pointer"
                   >
                     <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    <span>B2B DEALERSHIP</span>
+                    <span>B2B</span>
                   </MagneticButton>
                 </div>
               </motion.div>
@@ -369,10 +388,10 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.35 }}
-                className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 text-xs sm:text-sm text-[#FAF7EE] font-medium"
+                className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 sm:gap-x-6 gap-y-2 pt-2 text-xs sm:text-sm text-[#FAF7EE] font-medium w-full text-center lg:text-left"
               >
-                {currentData.features.map((feat, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
+                {currentData.features.map((feat) => (
+                  <div key={`${currentData.id}-feat-${feat.label}`} className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded-full bg-[#48BB78]/20 border border-[#48BB78]/60 flex items-center justify-center text-[#48BB78] shrink-0">
                       <Check className="w-3 h-3" />
                     </div>
@@ -380,14 +399,35 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                   </div>
                 ))}
               </motion.div>
+
+              {/* Statistics Card Centered on Mobile */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="pt-3 sm:pt-4 border-t border-white/10 grid grid-cols-3 gap-2 sm:gap-4 text-center max-w-md mx-auto lg:mx-0 w-full"
+              >
+                <div className="p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                  <span className="font-serif text-sm sm:text-xl font-bold text-[#D4AF37] block">100%</span>
+                  <span className="text-[9px] sm:text-[10px] text-[#A6A295] uppercase font-mono tracking-wider">Natural Pure</span>
+                </div>
+                <div className="p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                  <span className="font-serif text-sm sm:text-xl font-bold text-[#FAF7EE] block">EST. 1985</span>
+                  <span className="text-[9px] sm:text-[10px] text-[#A6A295] uppercase font-mono tracking-wider">Agra Heritage</span>
+                </div>
+                <div className="p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                  <span className="font-serif text-sm sm:text-xl font-bold text-[#48BB78] block">0 Filler</span>
+                  <span className="text-[9px] sm:text-[10px] text-[#A6A295] uppercase font-mono tracking-wider">Zero Additives</span>
+                </div>
+              </motion.div>
             </div>
 
             {/* Right Column: Dynamic Visual Stage for Each Slide */}
-            <div className="lg:col-span-6 xl:col-span-5 flex justify-center items-center relative">
+            <div className="w-full lg:col-span-6 xl:col-span-5 flex flex-col justify-center items-center relative overflow-hidden py-2 sm:py-0">
               
               {/* SLIDE 0: Royal Dry Fruits & Nuts with Saffron Kheer, Daily Vitality Bowl & Floating Dry Fruits */}
               {currentData.type === 'dryfruits' && (
-                <div className="relative w-full max-w-lg flex flex-col items-center">
+                <div className="relative w-full max-w-sm sm:max-w-lg flex flex-col items-center overflow-hidden">
                   
                   {/* Radiant Warm Amber & Saffron Sunburst Glow Backdrop */}
                   <div className="absolute -inset-10 bg-radial from-[#D4AF37]/35 via-[#DD6B20]/20 to-transparent rounded-full blur-2xl animate-pulse pointer-events-none" />
@@ -398,14 +438,14 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                   <FloatingPista className="bottom-2 -left-4 w-11 sm:w-14 h-13 sm:h-16 opacity-85 hidden sm:block" rotate={15} scale={1.0} delay={1.8} duration={5.8} />
                   <FloatingKishmish className="bottom-0 -right-2 w-10 sm:w-12 h-10 sm:h-12 opacity-90 hidden sm:block" rotate={-25} scale={1.05} delay={0.6} duration={6.5} />
 
-                  <div className="relative w-full h-80 sm:h-96 flex items-center justify-center">
+                  <div className="relative w-full max-w-[340px] sm:max-w-md h-64 sm:h-80 md:h-96 flex items-center justify-center overflow-hidden">
                     
-                    {/* Left Pairing Dish: Shahi Kheer & Badam Halwa (Garnished with slivered almonds & pistachios) */}
+                    {/* Left Pairing Dish: Shahi Kheer & Badam Halwa */}
                     <motion.div
-                      initial={{ opacity: 0, x: -30, scale: 0.9 }}
+                      initial={{ opacity: 0, x: -20, scale: 0.9 }}
                       animate={{ opacity: 1, x: 0, scale: 1 }}
                       transition={{ duration: 0.6, delay: 0.15 }}
-                      className="absolute -left-2 sm:left-0 bottom-4 w-32 sm:w-40 h-32 sm:h-40 rounded-full border-2 border-[#D4AF37]/60 overflow-hidden shadow-2xl z-20 group cursor-pointer"
+                      className="absolute -left-1 sm:left-0 bottom-2 sm:bottom-4 w-24 xs:w-28 sm:w-36 md:w-40 h-24 xs:w-28 sm:h-36 md:h-40 rounded-full border-2 border-[#D4AF37]/60 overflow-hidden shadow-2xl z-20 group cursor-pointer"
                       onClick={() => openProductDetail(badamProduct)}
                     >
                       <img
@@ -413,42 +453,42 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                         alt="Shahi Kheer & Halwa"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex flex-col items-center justify-end p-2">
-                        <span className="text-[10px] sm:text-xs font-bold text-[#F5DE88]">Shahi Kheer</span>
-                        <span className="text-[9px] text-[#CBD5E0]">Badam &amp; Pista</span>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex flex-col items-center justify-end p-1.5 sm:p-2">
+                        <span className="text-[9px] sm:text-xs font-bold text-[#F5DE88]">Shahi Kheer</span>
+                        <span className="text-[8px] sm:text-[9px] text-[#CBD5E0]">Badam &amp; Pista</span>
                       </div>
                     </motion.div>
 
-                    {/* Centerpiece: Royal Dry Fruit Pack (Interactive with Badam / Cashew / Pista / Gift Box) */}
+                    {/* Centerpiece: Royal Dry Fruit Pack */}
                     <motion.div
                       key={selectedDryFruitProduct.id}
-                      initial={{ opacity: 0, y: 25, scale: 0.92 }}
+                      initial={{ opacity: 0, y: 20, scale: 0.92 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       transition={{ duration: 0.6, delay: 0.2 }}
                       onClick={() => openProductDetail(selectedDryFruitProduct)}
-                      className="relative z-30 w-44 sm:w-56 h-64 sm:h-80 rounded-3xl bg-[#14141E] border-2 border-[#D4AF37] p-2.5 shadow-[0_25px_60px_rgba(212,175,55,0.4)] cursor-pointer group"
+                      className="relative z-30 w-36 xs:w-40 sm:w-52 md:w-56 h-56 xs:h-64 sm:h-76 md:h-80 rounded-3xl bg-[#14141E] border-2 border-[#D4AF37] p-2 sm:p-2.5 shadow-[0_20px_50px_rgba(212,175,55,0.4)] cursor-pointer group"
                     >
                       {/* AAA Royal Crunch Seal Badge */}
-                      <div className="absolute -top-3 -right-3 z-40 px-3 py-1 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1 border border-white/40">
-                        <Sparkles className="w-3 h-3 fill-[#0A0A0E]" />
-                        <span>AAA Royal Crunch</span>
+                      <div className="absolute -top-2.5 -right-2.5 sm:-top-3 sm:-right-3 z-40 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1 border border-white/40">
+                        <Sparkles className="w-2.5 sm:w-3 h-2.5 sm:h-3 fill-[#0A0A0E]" />
+                        <span>AAA Royal</span>
                       </div>
 
                       <div className="w-full h-full rounded-2xl bg-gradient-to-b from-white via-[#FFFDF7] to-[#FEFCBF]/60 p-2 overflow-hidden flex items-center justify-center relative">
                         <img
                           src={selectedDryFruitProduct.image}
                           alt={selectedDryFruitProduct.name}
-                          className="max-h-full object-contain filter drop-shadow-2xl group-hover:scale-105 transition-transform duration-300"
+                          className="max-h-full max-w-full object-contain filter drop-shadow-2xl group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
                     </motion.div>
 
-                    {/* Right Pairing Dish: Daily Energy Bowl / Fresh Dry Fruit Platter */}
+                    {/* Right Pairing Dish: Daily Energy Bowl */}
                     <motion.div
-                      initial={{ opacity: 0, x: 30, scale: 0.9 }}
+                      initial={{ opacity: 0, x: 20, scale: 0.9 }}
                       animate={{ opacity: 1, x: 0, scale: 1 }}
                       transition={{ duration: 0.6, delay: 0.25 }}
-                      className="absolute -right-2 sm:right-0 bottom-4 w-32 sm:w-40 h-32 sm:h-40 rounded-full border-2 border-[#D4AF37]/60 overflow-hidden shadow-2xl z-20 group cursor-pointer"
+                      className="absolute -right-1 sm:right-0 bottom-2 sm:bottom-4 w-24 xs:w-28 sm:w-36 md:w-40 h-24 xs:w-28 sm:h-36 md:h-40 rounded-full border-2 border-[#D4AF37]/60 overflow-hidden shadow-2xl z-20 group cursor-pointer"
                       onClick={() => openProductDetail(cashewProduct)}
                     >
                       <img
@@ -456,16 +496,16 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                         alt="Daily Energy Bowl"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex flex-col items-center justify-end p-2">
-                        <span className="text-[10px] sm:text-xs font-bold text-[#F5DE88]">Daily Vitality</span>
-                        <span className="text-[9px] text-[#CBD5E0]">Kaju &amp; Kishmish</span>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex flex-col items-center justify-end p-1.5 sm:p-2">
+                        <span className="text-[9px] sm:text-xs font-bold text-[#F5DE88]">Daily Vitality</span>
+                        <span className="text-[8px] sm:text-[9px] text-[#CBD5E0]">Kaju &amp; Kishmish</span>
                       </div>
                     </motion.div>
 
                   </div>
 
                   {/* Interactive Quick-Select Variety Tabs for Dry Fruits */}
-                  <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 z-30">
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 z-30 w-full px-1">
                     {[
                       { label: 'California Badam', prod: badamProduct },
                       { label: 'Jumbo Kaju', prod: cashewProduct },
@@ -480,10 +520,10 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                           setSelectedDryFruitId(tab.prod.id);
                           playLuxuryChime('click');
                         }}
-                        className={`px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
                           selectedDryFruitProduct.id === tab.prod.id
-                            ? 'bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] font-bold shadow-[0_0_12px_rgba(212,175,55,0.4)]'
-                            : 'bg-white/10 hover:bg-white/20 text-[#FAF7EE] border border-white/10'
+                            ? 'glass-btn-gold text-[#0A0A0E] font-bold'
+                            : 'glass-btn-pill text-[#FAF7EE]'
                         }`}
                       >
                         <span>{tab.label}</span>
@@ -492,127 +532,123 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                   </div>
 
                   {/* Caption */}
-                  <p className="text-xs text-[#FAF7EE] font-medium text-center mt-2 flex items-center gap-1.5">
+                  <p className="text-xs text-[#FAF7EE] font-medium text-center mt-2 flex items-center justify-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#D4AF37] inline-block animate-ping" />
                     <span>आगरा के शाही मेवे • 100% प्राकृतिक और क्रंची</span>
                   </p>
                 </div>
               )}
 
-              {/* SLIDE 1: Trio of Indian Ground Spices (Haldi, Mirch center, Dhaniya) */}
+              {/* SLIDE 1: Trio of Indian Ground Spices */}
               {currentData.type === 'trio' && (
-                <div className="relative w-full max-w-lg flex flex-col items-center">
+                <div className="relative w-full max-w-sm sm:max-w-lg flex flex-col items-center overflow-hidden">
                   {/* Glowing warm halo backdrop */}
                   <div className="absolute inset-0 bg-radial from-[#D4AF37]/25 via-transparent to-transparent blur-3xl -z-10" />
 
                   {/* 3 Spices Packets Showcase Stand */}
-                  <div className="relative w-full h-80 sm:h-96 flex items-end justify-center px-2">
+                  <div className="relative w-full max-w-[340px] sm:max-w-md h-64 sm:h-80 md:h-96 flex items-end justify-center px-1 overflow-hidden">
                     
                     {/* Left: Haldi Turmeric Packet */}
                     <motion.div
-                      initial={{ y: 30, opacity: 0 }}
+                      initial={{ y: 20, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ duration: 0.6, delay: 0.1 }}
                       onClick={() => openProductDetail(haldiProduct)}
-                      className="w-1/3 -mr-3 z-10 flex flex-col items-center cursor-pointer group"
+                      className="w-1/3 -mr-2 sm:-mr-3 z-10 flex flex-col items-center cursor-pointer group"
                     >
-                      <div className="relative w-28 sm:w-36 h-48 sm:h-60 rounded-2xl bg-[#121218]/80 border border-[#ECC94B]/40 p-2 shadow-2xl backdrop-blur-md group-hover:scale-105 group-hover:border-[#ECC94B] transition-transform duration-300">
+                      <div className="relative w-full max-w-[85px] xs:max-w-[105px] sm:max-w-[130px] h-40 xs:h-44 sm:h-56 md:h-60 rounded-2xl bg-[#121218]/80 border border-[#ECC94B]/40 p-1.5 sm:p-2 shadow-2xl backdrop-blur-md group-hover:scale-105 group-hover:border-[#ECC94B] transition-transform duration-300">
                         <div className="w-full h-full rounded-xl bg-gradient-to-b from-white to-[#FEFCBF] p-1.5 overflow-hidden flex items-center justify-center">
                           <img
                             src={haldiProduct.image}
                             alt="Haldi Powder"
-                            className="max-h-full object-contain filter drop-shadow-md"
+                            className="max-h-full max-w-full object-contain filter drop-shadow-md"
                           />
                         </div>
-                        <span className="absolute top-1.5 left-2 px-1.5 py-0.5 rounded bg-[#ECC94B] text-[#1A202C] text-[9px] font-black uppercase">
+                        <span className="absolute top-1.5 left-2 px-1.5 py-0.5 rounded bg-[#ECC94B] text-[#1A202C] text-[8px] sm:text-[9px] font-black uppercase">
                           Haldi
                         </span>
                       </div>
-                      {/* Turmeric Powder Mound & Raw Roots Indicator */}
-                      <div className="mt-2 text-center">
-                        <span className="text-[11px] font-bold text-[#F6E05E] block">हल्दी पाउडर</span>
-                        <span className="text-[9px] text-[#A0AEC0]">Golden Curcumin</span>
+                      <div className="mt-1.5 sm:mt-2 text-center">
+                        <span className="text-[10px] sm:text-[11px] font-bold text-[#F6E05E] block">हल्दी</span>
+                        <span className="text-[8px] sm:text-[9px] text-[#A0AEC0]">Golden Curcumin</span>
                       </div>
                     </motion.div>
 
-                    {/* Center: Mirch Red Chilli Powder (Elevated in front, exact video centerpiece) */}
+                    {/* Center: Mirch Red Chilli Powder */}
                     <motion.div
-                      initial={{ y: 40, opacity: 0, scale: 0.9 }}
+                      initial={{ y: 25, opacity: 0, scale: 0.9 }}
                       animate={{ y: 0, opacity: 1, scale: 1 }}
                       transition={{ duration: 0.6, delay: 0.2 }}
                       onClick={() => openProductDetail(mirchProduct)}
-                      className="w-2/5 z-30 -mb-2 flex flex-col items-center cursor-pointer group"
+                      className="w-2/5 z-30 -mb-1 sm:-mb-2 flex flex-col items-center cursor-pointer group"
                     >
-                      <div className="relative w-36 sm:w-44 h-56 sm:h-72 rounded-2xl bg-[#14141E] border-2 border-[#E53E3E]/60 p-2 shadow-[0_20px_50px_rgba(229,62,62,0.35)] backdrop-blur-md group-hover:scale-105 group-hover:border-[#E53E3E] transition-all duration-300">
-                        {/* Red Aura Glow */}
+                      <div className="relative w-full max-w-[110px] xs:max-w-[135px] sm:max-w-[165px] h-48 xs:h-54 sm:h-64 md:h-72 rounded-2xl bg-[#14141E] border-2 border-[#E53E3E]/60 p-1.5 sm:p-2 shadow-[0_20px_50px_rgba(229,62,62,0.35)] backdrop-blur-md group-hover:scale-105 group-hover:border-[#E53E3E] transition-all duration-300">
                         <div className="absolute inset-0 bg-radial from-[#E53E3E]/20 via-transparent to-transparent blur-xl pointer-events-none" />
-                        <div className="w-full h-full rounded-xl bg-gradient-to-b from-white to-[#FED7D7] p-2 overflow-hidden flex items-center justify-center relative">
+                        <div className="w-full h-full rounded-xl bg-gradient-to-b from-white to-[#FED7D7] p-1.5 sm:p-2 overflow-hidden flex items-center justify-center relative">
                           <img
                             src={mirchProduct.image}
                             alt="Lal Mirch Powder"
-                            className="max-h-full object-contain filter drop-shadow-xl"
+                            className="max-h-full max-w-full object-contain filter drop-shadow-xl"
                           />
                         </div>
-                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#E53E3E] text-white text-[10px] font-black uppercase tracking-wider shadow-md">
+                        <span className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 px-1.5 sm:px-2 py-0.5 rounded bg-[#E53E3E] text-white text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow-md">
                           ★ Mirch
                         </span>
                       </div>
-                      {/* Red Chilli Powder Mound & Whole Chillies Indicator */}
-                      <div className="mt-2 text-center">
-                        <span className="text-xs font-bold text-[#FC8181] block">लाल मिर्च पाउडर</span>
-                        <span className="text-[10px] text-[#CBD5E0]">Vibrant Pure Red</span>
+                      <div className="mt-1.5 sm:mt-2 text-center">
+                        <span className="text-[11px] sm:text-xs font-bold text-[#FC8181] block">लाल मिर्च</span>
+                        <span className="text-[8px] sm:text-[10px] text-[#CBD5E0]">Vibrant Pure Red</span>
                       </div>
                     </motion.div>
 
                     {/* Right: Dhaniya Coriander Packet */}
                     <motion.div
-                      initial={{ y: 30, opacity: 0 }}
+                      initial={{ y: 20, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ duration: 0.6, delay: 0.3 }}
                       onClick={() => openProductDetail(dhaniyaProduct)}
-                      className="w-1/3 -ml-3 z-10 flex flex-col items-center cursor-pointer group"
+                      className="w-1/3 -ml-2 sm:-ml-3 z-10 flex flex-col items-center cursor-pointer group"
                     >
-                      <div className="relative w-28 sm:w-36 h-48 sm:h-60 rounded-2xl bg-[#121218]/80 border border-[#38A169]/40 p-2 shadow-2xl backdrop-blur-md group-hover:scale-105 group-hover:border-[#38A169] transition-transform duration-300">
+                      <div className="relative w-full max-w-[85px] xs:max-w-[105px] sm:max-w-[130px] h-40 xs:h-44 sm:h-56 md:h-60 rounded-2xl bg-[#121218]/80 border border-[#38A169]/40 p-1.5 sm:p-2 shadow-2xl backdrop-blur-md group-hover:scale-105 group-hover:border-[#38A169] transition-transform duration-300">
                         <div className="w-full h-full rounded-xl bg-gradient-to-b from-white to-[#C6F6D5] p-1.5 overflow-hidden flex items-center justify-center">
                           <img
                             src={dhaniyaProduct.image}
                             alt="Dhaniya Powder"
-                            className="max-h-full object-contain filter drop-shadow-md"
+                            className="max-h-full max-w-full object-contain filter drop-shadow-md"
                           />
                         </div>
-                        <span className="absolute top-1.5 right-2 px-1.5 py-0.5 rounded bg-[#38A169] text-white text-[9px] font-black uppercase">
+                        <span className="absolute top-1.5 right-1.5 sm:right-2 px-1.5 py-0.5 rounded bg-[#38A169] text-white text-[8px] sm:text-[9px] font-black uppercase">
                           Dhaniya
                         </span>
                       </div>
-                      {/* Coriander Powder Mound Indicator */}
-                      <div className="mt-2 text-center">
-                        <span className="text-[11px] font-bold text-[#68D391] block">धनिया पाउडर</span>
-                        <span className="text-[9px] text-[#A0AEC0]">Fresh Roasted Seeds</span>
+                      <div className="mt-1.5 sm:mt-2 text-center">
+                        <span className="text-[10px] sm:text-[11px] font-bold text-[#68D391] block">धनिया</span>
+                        <span className="text-[8px] sm:text-[9px] text-[#A0AEC0]">Fresh Roasted Seeds</span>
                       </div>
                     </motion.div>
 
                   </div>
 
-                  {/* Podium Base Reflection Line with Spices Mounds */}
-                  <div className="w-full max-w-sm h-1.5 bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent rounded-full mt-2 shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
+                  {/* Podium Base Reflection Line */}
+                  <div className="w-full max-w-xs sm:max-w-sm h-1.5 bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent rounded-full mt-2 shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
                 </div>
               )}
 
-              {/* SLIDE 2: Kashmiri Mirch Special with Samosas, Curry & Sunburst Glow */}
+              {/* SLIDE 2: Kashmiri Mirch Special */}
               {currentData.type === 'kashmiri' && (
-                <div className="relative w-full max-w-lg flex flex-col items-center">
+                <div className="relative w-full max-w-sm sm:max-w-lg flex flex-col items-center overflow-hidden">
                   
-                  {/* Radiant Sunburst Background Glow (Exact video scene) */}
+                  {/* Radiant Sunburst Background Glow */}
                   <div className="absolute -inset-10 bg-radial from-[#DD6B20]/35 via-[#C53030]/20 to-transparent rounded-full blur-2xl animate-pulse pointer-events-none" />
 
-                  <div className="relative w-full h-80 sm:h-96 flex items-center justify-center">
+                  <div className="relative w-full max-w-[340px] sm:max-w-md h-64 sm:h-80 md:h-96 flex items-center justify-center overflow-hidden">
                     
-                    {/* Left Dish: Crispy Punjabi Samosas with Chutneys */}
+                    {/* Left Dish: Crispy Punjabi Samosas */}
                     <motion.div
-                      initial={{ opacity: 0, x: -30, scale: 0.9 }}
+                      initial={{ opacity: 0, x: -20, scale: 0.9 }}
                       animate={{ opacity: 1, x: 0, scale: 1 }}
                       transition={{ duration: 0.6, delay: 0.15 }}
-                      className="absolute -left-2 sm:left-0 bottom-4 w-32 sm:w-40 h-32 sm:h-40 rounded-full border-2 border-[#D4AF37]/50 overflow-hidden shadow-2xl z-20 group"
+                      className="absolute -left-1 sm:left-0 bottom-2 sm:bottom-4 w-24 xs:w-28 sm:w-36 md:w-40 h-24 xs:w-28 sm:h-36 md:h-40 rounded-full border-2 border-[#D4AF37]/50 overflow-hidden shadow-2xl z-20 group cursor-pointer"
                     >
                       <img
                         src="https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=400&q=80"
@@ -620,21 +656,21 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center p-1.5">
-                        <span className="text-[10px] sm:text-xs font-bold text-[#F5DE88]">Crispy Samosas</span>
+                        <span className="text-[9px] sm:text-xs font-bold text-[#F5DE88]">Crispy Samosas</span>
                       </div>
                     </motion.div>
 
-                    {/* Centerpiece: Munshi Panna Kashmiri Mirch Pack with "Great Taste" seal */}
+                    {/* Centerpiece: Munshi Panna Kashmiri Mirch Pack */}
                     <motion.div
-                      initial={{ opacity: 0, y: 25, scale: 0.92 }}
+                      initial={{ opacity: 0, y: 20, scale: 0.92 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       transition={{ duration: 0.6, delay: 0.2 }}
                       onClick={() => openProductDetail(kashmiriProduct)}
-                      className="relative z-30 w-44 sm:w-56 h-64 sm:h-80 rounded-3xl bg-[#14141E] border-2 border-[#E53E3E] p-2.5 shadow-[0_25px_60px_rgba(229,62,62,0.4)] cursor-pointer group"
+                      className="relative z-30 w-36 xs:w-40 sm:w-52 md:w-56 h-56 xs:h-64 sm:h-76 md:h-80 rounded-3xl bg-[#14141E] border-2 border-[#E53E3E] p-2 sm:p-2.5 shadow-[0_20px_50px_rgba(229,62,62,0.4)] cursor-pointer group"
                     >
                       {/* Great Taste Seal Badge */}
-                      <div className="absolute -top-3 -right-3 z-40 px-3 py-1 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1 border border-white/40">
-                        <Star className="w-3 h-3 fill-[#0A0A0E]" />
+                      <div className="absolute -top-2.5 -right-2.5 sm:-top-3 sm:-right-3 z-40 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1 border border-white/40">
+                        <Star className="w-2.5 sm:w-3 h-2.5 sm:h-3 fill-[#0A0A0E]" />
                         <span>Great Taste</span>
                       </div>
 
@@ -642,17 +678,17 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                         <img
                           src={kashmiriProduct.image}
                           alt="Kashmiri Lal Mirch"
-                          className="max-h-full object-contain filter drop-shadow-xl group-hover:scale-105 transition-transform duration-300"
+                          className="max-h-full max-w-full object-contain filter drop-shadow-xl group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
                     </motion.div>
 
-                    {/* Right Dish: Rich Aromatic Indian Curry / Dal Makhani Bowl */}
+                    {/* Right Dish: Rich Aromatic Indian Curry */}
                     <motion.div
-                      initial={{ opacity: 0, x: 30, scale: 0.9 }}
+                      initial={{ opacity: 0, x: 20, scale: 0.9 }}
                       animate={{ opacity: 1, x: 0, scale: 1 }}
                       transition={{ duration: 0.6, delay: 0.25 }}
-                      className="absolute -right-2 sm:right-0 bottom-4 w-32 sm:w-40 h-32 sm:h-40 rounded-full border-2 border-[#D4AF37]/50 overflow-hidden shadow-2xl z-20 group"
+                      className="absolute -right-1 sm:right-0 bottom-2 sm:bottom-4 w-24 xs:w-28 sm:w-36 md:w-40 h-24 xs:w-28 sm:h-36 md:h-40 rounded-full border-2 border-[#D4AF37]/50 overflow-hidden shadow-2xl z-20 group cursor-pointer"
                     >
                       <img
                         src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=400&q=80"
@@ -660,43 +696,43 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center p-1.5">
-                        <span className="text-[10px] sm:text-xs font-bold text-[#F5DE88]">Shahi Dal &amp; Curry</span>
+                        <span className="text-[9px] sm:text-xs font-bold text-[#F5DE88]">Shahi Dal</span>
                       </div>
                     </motion.div>
 
                   </div>
 
                   {/* Caption */}
-                  <p className="text-xs text-[#FAF7EE] font-medium text-center mt-2 flex items-center gap-1.5">
+                  <p className="text-xs text-[#FAF7EE] font-medium text-center mt-2 flex items-center justify-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#E53E3E] inline-block animate-ping" />
                     <span>गहरा प्राकृतिक रंग • 100% साबुत कश्मीरी मिर्च</span>
                   </p>
                 </div>
               )}
 
-              {/* SLIDE 3: Chef's Kitchen & Blended Masale (Chana Masala, Garam Masala) */}
+              {/* SLIDE 3: Chef's Kitchen & Blended Masale */}
               {currentData.type === 'chef' && (
-                <div className="relative w-full max-w-lg flex flex-col items-center">
+                <div className="relative w-full max-w-sm sm:max-w-lg flex flex-col items-center overflow-hidden">
                   
                   {/* Golden kitchen aura */}
                   <div className="absolute inset-0 bg-radial from-[#D4AF37]/25 via-[#975A16]/20 to-transparent blur-3xl pointer-events-none" />
 
-                  <div className="relative w-full h-80 sm:h-96 flex items-center justify-center">
+                  <div className="relative w-full max-w-[340px] sm:max-w-md h-64 sm:h-80 md:h-96 flex items-center justify-center overflow-hidden">
                     
                     {/* Left: Authentic Punjabi Chole dish */}
                     <motion.div
-                      initial={{ opacity: 0, x: -25 }}
+                      initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.6, delay: 0.15 }}
-                      className="absolute -left-3 sm:left-2 bottom-6 w-32 sm:w-40 h-32 sm:h-40 rounded-3xl border-2 border-[#D4AF37]/60 overflow-hidden shadow-2xl z-20 group"
+                      className="absolute -left-1 sm:left-2 bottom-3 sm:bottom-6 w-24 xs:w-28 sm:w-36 md:w-40 h-24 xs:w-28 sm:h-36 md:h-40 rounded-2xl sm:rounded-3xl border-2 border-[#D4AF37]/60 overflow-hidden shadow-2xl z-20 group cursor-pointer"
                     >
                       <img
                         src="https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=400&q=80"
                         alt="Amritsari Chole"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center p-2">
-                        <span className="text-[10px] sm:text-xs font-bold text-[#F5DE88]">Amritsari Chole</span>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center p-1.5 sm:p-2">
+                        <span className="text-[9px] sm:text-xs font-bold text-[#F5DE88]">Amritsari Chole</span>
                       </div>
                     </motion.div>
 
@@ -706,43 +742,43 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       transition={{ duration: 0.6, delay: 0.2 }}
                       onClick={() => openProductDetail(chanaProduct)}
-                      className="relative z-30 w-40 sm:w-48 h-60 sm:h-72 rounded-3xl bg-[#14141E] border-2 border-[#D4AF37] p-2 shadow-[0_20px_50px_rgba(212,175,55,0.35)] cursor-pointer group"
+                      className="relative z-30 w-36 xs:w-40 sm:w-46 md:w-48 h-56 xs:h-62 sm:h-68 md:h-72 rounded-3xl bg-[#14141E] border-2 border-[#D4AF37] p-2 shadow-[0_20px_50px_rgba(212,175,55,0.35)] cursor-pointer group"
                     >
                       <div className="w-full h-full rounded-2xl bg-gradient-to-b from-white to-[#FEFCBF] p-2 overflow-hidden flex items-center justify-center">
                         <img
                           src={chanaProduct.image}
                           alt="Chana Masala"
-                          className="max-h-full object-contain filter drop-shadow-xl group-hover:scale-105 transition-transform duration-300"
+                          className="max-h-full max-w-full object-contain filter drop-shadow-xl group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#D4AF37] text-[#0A0A0E] text-[10px] font-black uppercase tracking-wider">
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#D4AF37] text-[#0A0A0E] text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
                         Chana Masala
                       </span>
                     </motion.div>
 
                     {/* Right: Garam Masala Blend Pack */}
                     <motion.div
-                      initial={{ opacity: 0, x: 25 }}
+                      initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.6, delay: 0.25 }}
                       onClick={() => openProductDetail(garamProduct)}
-                      className="absolute -right-3 sm:right-2 bottom-6 w-32 sm:w-38 h-48 sm:h-56 rounded-2xl bg-[#14141E] border border-[#D4AF37]/50 p-1.5 shadow-2xl z-20 cursor-pointer group"
+                      className="absolute -right-1 sm:right-2 bottom-3 sm:bottom-6 w-24 xs:w-28 sm:w-34 md:w-38 h-40 xs:h-44 sm:h-50 md:h-56 rounded-2xl bg-[#14141E] border border-[#D4AF37]/50 p-1.5 shadow-2xl z-20 cursor-pointer group"
                     >
                       <div className="w-full h-full rounded-xl bg-gradient-to-b from-white to-[#FEFCBF] p-1.5 overflow-hidden flex items-center justify-center">
                         <img
                           src={garamProduct.image}
                           alt="Garam Masala"
-                          className="max-h-full object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-300"
+                          className="max-h-full max-w-full object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
-                      <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-[#E69C36] text-[#0A0A0E] text-[9px] font-black uppercase">
+                      <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-[#E69C36] text-[#0A0A0E] text-[8px] sm:text-[9px] font-black uppercase">
                         Garam Masala
                       </span>
                     </motion.div>
 
                   </div>
 
-                  <p className="text-xs text-[#FAF7EE] font-medium text-center mt-2 flex items-center gap-1.5">
+                  <p className="text-xs text-[#FAF7EE] font-medium text-center mt-2 flex items-center justify-center gap-1.5">
                     <UtensilsCrossed className="w-3.5 h-3.5 text-[#D4AF37]" />
                     <span>24 मसालों का शाही मिश्रण • हर बाइट में अनोखा स्वाद</span>
                   </p>
@@ -757,34 +793,34 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
         <button
           onClick={() => handlePrev(true)}
           aria-label="Previous Slide"
-          className="absolute left-0 sm:-left-3 top-1/2 -translate-y-1/2 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#12121A]/85 hover:bg-[#D4AF37] text-[#DFDACD] hover:text-[#0A0A0E] border border-[#D4AF37]/40 flex items-center justify-center backdrop-blur-md transition-all duration-300 shadow-xl cursor-pointer"
+          className="absolute left-0 sm:-left-3 top-1/2 -translate-y-1/2 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-full glass-btn-icon text-[#DFDACD] hover:text-[#FAF7EE] flex items-center justify-center cursor-pointer"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5 text-[#D4AF37]" />
         </button>
 
         {/* Next Slide Navigation Arrow Button */}
         <button
           onClick={() => handleNext(true)}
           aria-label="Next Slide"
-          className="absolute right-0 sm:-right-3 top-1/2 -translate-y-1/2 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#12121A]/85 hover:bg-[#D4AF37] text-[#DFDACD] hover:text-[#0A0A0E] border border-[#D4AF37]/40 flex items-center justify-center backdrop-blur-md transition-all duration-300 shadow-xl cursor-pointer"
+          className="absolute right-0 sm:-right-3 top-1/2 -translate-y-1/2 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-full glass-btn-icon text-[#DFDACD] hover:text-[#FAF7EE] flex items-center justify-center cursor-pointer"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-5 h-5 text-[#D4AF37]" />
         </button>
       </div>
 
       {/* Interactive Bottom Carousel Controls Bar (Pills & Autoplay Progress) */}
-      <div className="mt-4 sm:mt-6 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 relative z-20">
+      <div className="mt-4 sm:mt-6 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 relative z-20 w-full">
         
         {/* Slide Indicator Pills */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2.5 w-full sm:w-auto">
           {slides.map((slide, idx) => (
             <button
               key={slide.id}
               onClick={() => goToSlide(idx, idx > currentSlide ? 1 : -1, true)}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold tracking-wider transition-all duration-300 cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-semibold tracking-wider transition-all duration-300 cursor-pointer ${
                 currentSlide === idx
-                  ? 'bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] shadow-[0_0_15px_rgba(212,175,55,0.4)] font-bold'
-                  : 'bg-white/5 hover:bg-white/10 text-[#B8B4A8] hover:text-[#FAF7EE] border border-white/5'
+                  ? 'glass-btn-gold text-[#0A0A0E] font-bold'
+                  : 'glass-btn-pill text-[#B8B4A8] hover:text-[#FAF7EE]'
               }`}
             >
               <span>0{idx + 1}</span>
@@ -801,22 +837,35 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onExplore }) => {
           ))}
         </div>
 
-        {/* Slide Progress Bar & Pause Control */}
-        <div className="flex items-center gap-3 text-xs text-[#B8B4A8]">
+        {/* Slide Progress Bar, Sound Selector & Pause Control */}
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-3 text-xs text-[#B8B4A8] w-full sm:w-auto">
           {/* Progress Track */}
-          <div className="w-24 sm:w-36 h-1.5 rounded-full bg-white/10 overflow-hidden relative">
+          <div className="w-20 sm:w-32 h-1.5 rounded-full bg-white/10 overflow-hidden relative">
             <motion.div
               className="h-full bg-gradient-to-r from-[#D4AF37] to-[#E69C36] rounded-full"
               style={{ width: `${progress}%` }}
             />
           </div>
 
+          {/* Sound Effect Selector */}
+          <button
+            onClick={handleCycleSoundStyle}
+            title="Click to cycle premium slide sounds: Royal Gold, Crystal Harp, Velvet Glide, Agra Bell"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full glass-btn-pill text-[11px] text-[#DFDACD] hover:text-[#FAF7EE] transition-all cursor-pointer border border-[#D4AF37]/30 hover:border-[#D4AF37]/60"
+          >
+            <Volume2 className="w-3 h-3 text-[#D4AF37]" />
+            <span>{SLIDE_SOUND_STYLES.find((s) => s.id === soundStyle)?.icon}</span>
+            <span className="hidden md:inline font-medium text-[10px]">
+              {SLIDE_SOUND_STYLES.find((s) => s.id === soundStyle)?.label}
+            </span>
+          </button>
+
           <button
             onClick={() => setIsPaused(!isPaused)}
             title={isPaused ? 'Resume autoplay' : 'Pause autoplay'}
-            className="p-1 rounded-full hover:bg-white/10 text-[#FAF7EE] transition-colors cursor-pointer"
+            className="p-1.5 rounded-full glass-btn-icon text-[#FAF7EE] transition-all cursor-pointer"
           >
-            {isPaused ? <Play className="w-3.5 h-3.5 text-[#F5DE88]" /> : <Pause className="w-3.5 h-3.5" />}
+            {isPaused ? <Play className="w-3.5 h-3.5 text-[#F5DE88]" /> : <Pause className="w-3.5 h-3.5 text-[#D4AF37]" />}
           </button>
         </div>
       </div>

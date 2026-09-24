@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Heart, Eye, ShoppingCart, Zap, Star, Activity, Sparkles } from 'lucide-react';
+import { Heart, Eye, ShoppingCart, Zap, Star, Activity, Sparkles, Camera } from 'lucide-react';
 import { Product } from '../types';
 import { useStore } from '../context/StoreContext';
 import { triggerParticleBurst } from '../utils/effects';
 import { playLuxuryChime } from '../utils/sound';
+import { ImageUploadModal } from './ImageUploadModal';
 
 interface ProductCardProps {
   product: Product;
@@ -24,6 +25,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   // Interactive specular reflection position
   const [glarePos, setGlarePos] = useState({ x: 50, y: 50, opacity: 0 });
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -116,7 +118,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             onClick={handleOpenScanner}
             title="Scan Batch Spectrometry"
             aria-label="Scan Batch Purity"
-            className="w-8 h-8 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0A0A0E] transition-all group-hover:scale-105"
+            className="w-8 h-8 rounded-full glass-btn-icon flex items-center justify-center text-[#D4AF37] hover:text-[#0A0A0E]"
           >
             <Activity className="w-3.5 h-3.5" />
           </button>
@@ -125,19 +127,34 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <button
             onClick={handleQuickView}
             aria-label="Quick View"
-            className="w-8 h-8 rounded-full glass-panel-subtle flex items-center justify-center text-[#DFDACD] hover:text-[#D4AF37] hover:bg-white/10 transition-all opacity-80 group-hover:opacity-100"
+            className="w-8 h-8 rounded-full glass-btn-icon flex items-center justify-center text-[#DFDACD] hover:text-[#D4AF37]"
           >
             <Eye className="w-3.5 h-3.5" />
           </button>
+
+          {/* Quick Packaging Upload Button for Peri Peri */}
+          {product.id === 'SPC-7' && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsUploadOpen(true);
+              }}
+              aria-label="Upload Exact Packaging"
+              title="Set Exact Peri Peri Box Image"
+              className="w-8 h-8 rounded-full glass-btn-icon flex items-center justify-center text-[#DFDACD] hover:text-[#F5DE88] hover:border-[#D4AF37]/80"
+            >
+              <Camera className="w-3.5 h-3.5" />
+            </button>
+          )}
 
           {/* Wishlist Button */}
           <button
             onClick={handleToggleWishlist}
             aria-label="Wishlist"
-            className={`w-8 h-8 rounded-full glass-panel-subtle flex items-center justify-center transition-all ${
+            className={`w-8 h-8 rounded-full glass-btn-icon flex items-center justify-center transition-all ${
               wishlisted
-                ? 'text-[#E53E3E] bg-[#E53E3E]/10 border border-[#E53E3E]/30'
-                : 'text-[#DFDACD] hover:text-[#D4AF37] hover:bg-white/10'
+                ? 'text-[#E53E3E] border-[#E53E3E]/50'
+                : 'text-[#DFDACD] hover:text-[#D4AF37]'
             }`}
           >
             <Heart
@@ -161,7 +178,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           className="relative z-10 max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)] group-hover:scale-105 transition-transform duration-500 ease-out"
           onError={(e) => {
             const target = e.currentTarget;
-            if (!target.src.includes('arajpure.com')) {
+            if (!target.src.includes('arajpure.com') && !target.src.includes('peri-peri')) {
               target.src = `https://www.arajpure.com${product.image.replace('/images', '')}`;
             }
           }}
@@ -207,7 +224,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="grid grid-cols-2 gap-2 pt-2">
           <button
             onClick={handleAddToCart}
-            className="flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-white/[0.05] hover:bg-[#D4AF37]/20 border border-white/10 hover:border-[#D4AF37]/50 text-[#FAF7EE] font-semibold text-[11px] uppercase tracking-wider transition-all duration-200 cursor-pointer"
+            className="glass-btn-secondary flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-[#FAF7EE] font-semibold text-[11px] uppercase tracking-wider cursor-pointer"
           >
             <ShoppingCart className="w-3.5 h-3.5 text-[#D4AF37]" />
             <span>ADD TO BAG</span>
@@ -215,13 +232,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
           <button
             onClick={handleBuyNow}
-            className="flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] hover:brightness-110 text-[#0A0A0E] font-bold text-[11px] uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
+            className="glass-btn-gold flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-[#0A0A0E] font-bold text-[11px] uppercase tracking-wider cursor-pointer"
           >
             <Zap className="w-3.5 h-3.5 fill-[#0A0A0E] text-[#0A0A0E]" />
             <span>BUY NOW</span>
           </button>
         </div>
       </div>
+
+      {/* Image Upload Modal if triggered from card */}
+      <ImageUploadModal
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        productId={product.id}
+        defaultProductName={product.name}
+      />
     </motion.div>
   );
 };

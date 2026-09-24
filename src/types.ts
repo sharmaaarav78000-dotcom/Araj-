@@ -37,6 +37,17 @@ export interface CustomerInfo {
   notes?: string;
 }
 
+export type OrderStatus = 'Confirmed' | 'Processing' | 'Dispatched' | 'Out for Delivery' | 'Delivered';
+
+export interface OrderStatusEvent {
+  status: OrderStatus;
+  title: string;
+  description: string;
+  timestamp: string;
+  location?: string;
+  completed: boolean;
+}
+
 export interface Order {
   id: string;
   items: CartItem[];
@@ -46,7 +57,13 @@ export interface Order {
   total: number;
   customer: CustomerInfo;
   createdAt: string;
-  status: 'Confirmed' | 'Dispatched' | 'Delivered';
+  status: OrderStatus;
+  userId?: string;
+  carrier?: string;
+  trackingNumber?: string;
+  estimatedDelivery?: string;
+  statusTimeline?: OrderStatusEvent[];
+  updatedAt?: string;
 }
 
 export interface DistributorInquiry {

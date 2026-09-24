@@ -47,7 +47,7 @@ export const GiftingSection: React.FC<{ onExploreGifting: () => void }> = ({ onE
           {/* Working Bespoke Hamper Builder Trigger */}
           <button
             onClick={openHamper}
-            className="flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full glass-card-futuristic text-[#FAF7EE] hover:text-[#FFF] hover:border-[#D4AF37] text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.2)] cursor-pointer"
+            className="flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full glass-btn-secondary text-[#FAF7EE] text-xs font-bold uppercase tracking-wider cursor-pointer"
           >
             <Wand2 className="w-4 h-4 text-[#D4AF37]" />
             <span>CUSTOM HAMPER ATELIER</span>
@@ -56,7 +56,7 @@ export const GiftingSection: React.FC<{ onExploreGifting: () => void }> = ({ onE
           <button
             id="explore-gift-collection-btn"
             onClick={onExploreGifting}
-            className="flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider shadow-[0_4px_20px_rgba(212,175,55,0.35)] hover:shadow-[0_6px_25px_rgba(212,175,55,0.5)] transition-all duration-300 transform hover:-translate-y-0.5 group cursor-pointer"
+            className="flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full glass-btn-gold text-[#0A0A0E] font-bold text-xs uppercase tracking-wider group cursor-pointer"
           >
             <span>ALL GIFT BOXES</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -77,7 +77,7 @@ export const GiftingSection: React.FC<{ onExploreGifting: () => void }> = ({ onE
           <p className="text-xs sm:text-sm text-[#DFDACD]/85 leading-relaxed">
             Select an heirloom wooden lacquer or velvet box, curate 4 to 6 compartments with hand-graded W240 cashews, Mamra badam, Kashmiri saffron, and custom wax-sealed monogram message.
           </p>
-          <div className="flex items-center gap-4 pt-2 text-xs font-mono text-[#D4AF37]">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2 text-xs font-mono text-[#D4AF37]">
             <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5" /> 100% Guaranteed Fresh</span>
             <span className="flex items-center gap-1"><Box className="w-3.5 h-3.5" /> Gold Embossed Inscription</span>
           </div>
@@ -85,7 +85,7 @@ export const GiftingSection: React.FC<{ onExploreGifting: () => void }> = ({ onE
 
         <button
           onClick={openHamper}
-          className="relative z-10 px-8 py-4 rounded-full bg-gradient-to-r from-[#D4AF37] via-[#F3EFE6] to-[#C59F2D] text-[#0A0A0E] font-black text-xs sm:text-sm uppercase tracking-widest shadow-[0_0_30px_rgba(212,175,55,0.4)] hover:brightness-110 transition-all cursor-pointer whitespace-nowrap"
+          className="relative z-10 px-8 py-4 rounded-full glass-btn-gold text-[#0A0A0E] font-black text-xs sm:text-sm uppercase tracking-widest cursor-pointer whitespace-nowrap"
         >
           LAUNCH HAMPER ATELIER
         </button>

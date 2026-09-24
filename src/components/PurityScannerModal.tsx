@@ -76,9 +76,10 @@ export const PurityScannerModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      <div key="purity-scanner-wrapper" className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
         {/* Backdrop with heavy blur */}
         <motion.div
+          key="purity-scanner-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -88,6 +89,7 @@ export const PurityScannerModal: React.FC = () => {
 
         {/* Modal Window with Futuristic Glass Finish */}
         <motion.div
+          key="purity-scanner-dialog"
           initial={{ opacity: 0, scale: 0.94, y: 25 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 25 }}
@@ -119,14 +121,14 @@ export const PurityScannerModal: React.FC = () => {
               <button
                 onClick={triggerScan}
                 disabled={scanning}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-pill text-xs text-[#FAF7EE] hover:border-[#D4AF37]/50 transition-all cursor-pointer"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-btn-pill text-xs text-[#FAF7EE] cursor-pointer"
               >
                 <RotateCcw className={`w-3.5 h-3.5 text-[#D4AF37] ${scanning ? 'animate-spin' : ''}`} />
                 <span>Rescan Batch</span>
               </button>
               <button
                 onClick={closeScanner}
-                className="p-2 rounded-full text-[#DFDACD] hover:text-white hover:bg-white/10 transition-colors"
+                className="p-2 rounded-full glass-btn-icon text-[#DFDACD] hover:text-white"
                 aria-label="Close scanner"
               >
                 <X className="w-5 h-5" />
@@ -146,10 +148,10 @@ export const PurityScannerModal: React.FC = () => {
                   setSelectedItem(p);
                   triggerScan();
                 }}
-                className={`px-3 py-1 rounded-lg shrink-0 transition-all text-[11px] font-medium ${
+                className={`px-3 py-1 rounded-lg shrink-0 transition-all text-[11px] font-medium cursor-pointer ${
                   selectedItem.id === p.id
-                    ? 'bg-[#D4AF37] text-[#0A0A0E] font-bold shadow-md'
-                    : 'bg-white/[0.04] text-[#C4C0B5] hover:bg-white/10 hover:text-white border border-white/5'
+                    ? 'glass-btn-gold text-[#0A0A0E] font-bold'
+                    : 'glass-btn-pill text-[#C4C0B5] hover:text-white'
                 }`}
               >
                 {p.name}
@@ -341,7 +343,7 @@ export const PurityScannerModal: React.FC = () => {
                   closeScanner();
                   openProductDetail(selectedItem);
                 }}
-                className="flex-1 sm:flex-none px-4 py-3 rounded-xl glass-pill text-xs font-semibold text-[#DFDACD] hover:text-white transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 sm:flex-none px-4 py-3 rounded-xl glass-btn-secondary text-xs font-semibold text-[#DFDACD] hover:text-white flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Eye className="w-3.5 h-3.5" />
                 <span>Full Culinary Dossier</span>
@@ -352,7 +354,7 @@ export const PurityScannerModal: React.FC = () => {
                   addToCart(selectedItem);
                   closeScanner();
                 }}
-                className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-lg flex items-center justify-center gap-2 transition-all"
+                className="flex-1 sm:flex-none px-6 py-3 rounded-xl glass-btn-gold text-[#0A0A0E] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>Add Verified Batch to Bag</span>

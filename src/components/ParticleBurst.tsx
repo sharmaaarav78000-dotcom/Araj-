@@ -1,6 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Volume2, VolumeX, Sparkles } from 'lucide-react';
-import { toggleAudioMute, getIsAudioMuted, playLuxuryChime } from '../utils/sound';
+import { Volume2, VolumeX, Sparkles, ChevronRight, ChevronLeft, Sliders, Check } from 'lucide-react';
+import { 
+  toggleAudioMute, 
+  getIsAudioMuted, 
+  playLuxuryChime, 
+  playSlideSound, 
+  getSlideSoundStyle, 
+  setSlideSoundStyle, 
+  SLIDE_SOUND_STYLES,
+  SlideSoundStyle 
+} from '../utils/sound';
 
 interface Particle {
   x: number;
@@ -34,6 +43,8 @@ export const ParticleBurst: React.FC = () => {
   const flyingOrbsRef = useRef<FlyingOrb[]>([]);
   const [isMuted, setIsMuted] = useState(getIsAudioMuted());
   const [soundActive, setSoundActive] = useState(false);
+  const [showSoundMenu, setShowSoundMenu] = useState(false);
+  const [currentStyle, setCurrentStyle] = useState<SlideSoundStyle>(getSlideSoundStyle());
 
   // Sound active pulse timer
   useEffect(() => {
@@ -99,16 +110,15 @@ export const ParticleBurst: React.FC = () => {
           decay: Math.random() * 0.025 + 0.018,
           rotation: Math.random() * Math.PI * 2,
           vRot: (Math.random() - 0.5) * 0.2,
-          shape: type === 'heart' ? 'heart' : Math.random() > 0.4 ? 'star' : 'circle',
+          shape: type === 'heart' ? 'heart' : Math.random() > 0.6 ? 'sparkle' : 'star',
         });
       }
 
-      // If adding to cart, spawn a flying orb heading towards the cart button in navbar!
-      if (targetCart || type === 'cart') {
-        const cartBtn = document.getElementById('navbar-cart-btn') || document.getElementById('mobile-nav-cart');
-        let targetX = window.innerWidth - 70;
-        let targetY = 32;
-
+      // If targeting cart, launch a magnetic glowing golden orb to navbar cart
+      if (targetCart) {
+        const cartBtn = document.getElementById('navbar-cart-btn');
+        let targetX = window.innerWidth - 60;
+        let targetY = 30;
         if (cartBtn) {
           const rect = cartBtn.getBoundingClientRect();
           targetX = rect.left + rect.width / 2;
@@ -124,16 +134,18 @@ export const ParticleBurst: React.FC = () => {
           targetX,
           targetY,
           progress: 0,
-          color: '#F5DE88',
+          color: '#D4AF37',
         });
       }
     };
 
-    window.addEventListener('araj:particle', handleTrigger);
-    return () => window.removeEventListener('araj:particle', handleTrigger);
+    window.addEventListener('araj:particle-trigger', handleTrigger);
+    return () => {
+      window.removeEventListener('araj:particle-trigger', handleTrigger);
+    };
   }, []);
 
-  // Animation Loop on Fullscreen Overlay Canvas
+  // Animation Loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -141,132 +153,131 @@ export const ParticleBurst: React.FC = () => {
     if (!ctx) return;
 
     let animId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
 
     const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     };
+    handleResize();
     window.addEventListener('resize', handleResize);
 
-    const drawStar = (cx: number, cy: number, spikes: number, outerR: number, innerR: number) => {
+    const drawStar = (cx: number, cy: number, spikes: number, outerRadius: number, innerRadius: number, fillStyle: string, alpha: number) => {
       let rot = (Math.PI / 2) * 3;
       let x = cx;
       let y = cy;
       const step = Math.PI / spikes;
 
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = fillStyle;
       ctx.beginPath();
-      ctx.moveTo(cx, cy - outerR);
+      ctx.moveTo(cx, cy - outerRadius);
       for (let i = 0; i < spikes; i++) {
-        x = cx + Math.cos(rot) * outerR;
-        y = cy + Math.sin(rot) * outerR;
+        x = cx + Math.cos(rot) * outerRadius;
+        y = cy + Math.sin(rot) * outerRadius;
         ctx.lineTo(x, y);
         rot += step;
 
-        x = cx + Math.cos(rot) * innerR;
-        y = cy + Math.sin(rot) * innerR;
+        x = cx + Math.cos(rot) * innerRadius;
+        y = cy + Math.sin(rot) * innerRadius;
         ctx.lineTo(x, y);
         rot += step;
       }
-      ctx.lineTo(cx, cy - outerR);
+      ctx.lineTo(cx, cy - outerRadius);
       ctx.closePath();
       ctx.fill();
+      ctx.restore();
     };
 
-    const drawHeart = (x: number, y: number, size: number) => {
+    const drawSparkle = (cx: number, cy: number, size: number, color: string, alpha: number, rot: number) => {
       ctx.save();
-      ctx.translate(x, y);
+      ctx.globalAlpha = alpha;
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * 2.2, size * 0.45, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, size * 0.45, size * 2.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    };
+
+    const drawHeart = (cx: number, cy: number, size: number, color: string, alpha: number) => {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
       ctx.beginPath();
       const topCurveHeight = size * 0.3;
-      ctx.moveTo(0, topCurveHeight);
-      ctx.bezierCurveTo(0, 0, -size / 2, 0, -size / 2, topCurveHeight);
-      ctx.bezierCurveTo(-size / 2, (size + topCurveHeight) / 2, 0, size, 0, size * 1.2);
-      ctx.bezierCurveTo(0, size, size / 2, (size + topCurveHeight) / 2, size / 2, topCurveHeight);
-      ctx.bezierCurveTo(size / 2, 0, 0, 0, 0, topCurveHeight);
+      ctx.moveTo(cx, cy + topCurveHeight);
+      ctx.bezierCurveTo(cx, cy, cx - size / 2, cy, cx - size / 2, cy + topCurveHeight);
+      ctx.bezierCurveTo(cx - size / 2, cy + (size + topCurveHeight) / 2, cx, cy + (size + topCurveHeight) / 2, cx, cy + size);
+      ctx.bezierCurveTo(cx, cy + (size + topCurveHeight) / 2, cx + size / 2, cy + (size + topCurveHeight) / 2, cx + size / 2, cy + topCurveHeight);
+      ctx.bezierCurveTo(cx + size / 2, cy, cx, cy, cx, cy + topCurveHeight);
       ctx.closePath();
       ctx.fill();
       ctx.restore();
     };
 
     const render = () => {
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Render & Update Particles
+      // Render Explosion Particles
       const particles = particlesRef.current;
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.12; // gentle gravity
-        p.vx *= 0.98; // atmospheric friction
-        p.alpha -= p.decay;
+        p.vy += 0.08; // subtle gravity
+        p.vx *= 0.96; // drag
         p.rotation += p.vRot;
+        p.alpha -= p.decay;
 
         if (p.alpha <= 0) {
           particles.splice(i, 1);
           continue;
         }
 
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, p.alpha);
-        ctx.fillStyle = p.color;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = p.color;
-
-        if (p.shape === 'star') {
-          ctx.translate(p.x, p.y);
-          ctx.rotate(p.rotation);
-          drawStar(0, 0, 4, p.size * 1.6, p.size * 0.6);
+        if (p.shape === 'sparkle') {
+          drawSparkle(p.x, p.y, p.size, p.color, p.alpha, p.rotation);
         } else if (p.shape === 'heart') {
-          drawHeart(p.x, p.y, p.size * 1.5);
+          drawHeart(p.x, p.y, p.size * 2, p.color, p.alpha);
         } else {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fill();
+          drawStar(p.x, p.y, 4, p.size, p.size * 0.4, p.color, p.alpha);
         }
-        ctx.restore();
       }
 
-      // Render & Update Flying Cart Orbs
+      // Render Flying Magnetic Orbs
       const orbs = flyingOrbsRef.current;
       for (let i = orbs.length - 1; i >= 0; i--) {
         const orb = orbs[i];
         orb.progress += 0.035;
 
-        // Quadratic Bezier arc with high apex
-        const t = Math.min(1, orb.progress);
-        const controlX = (orb.startX + orb.targetX) / 2 - 60;
-        const controlY = Math.min(orb.startY, orb.targetY) - 140;
+        // Quadratic bezier arc trajectory
+        const t = Math.min(orb.progress, 1);
+        const cpX = (orb.startX + orb.targetX) / 2 - 80;
+        const cpY = Math.min(orb.startY, orb.targetY) - 120;
 
-        orb.currentX = (1 - t) * (1 - t) * orb.startX + 2 * (1 - t) * t * controlX + t * t * orb.targetX;
-        orb.currentY = (1 - t) * (1 - t) * orb.startY + 2 * (1 - t) * t * controlY + t * t * orb.targetY;
+        orb.currentX = (1 - t) * (1 - t) * orb.startX + 2 * (1 - t) * t * cpX + t * t * orb.targetX;
+        orb.currentY = (1 - t) * (1 - t) * orb.startY + 2 * (1 - t) * t * cpY + t * t * orb.targetY;
 
-        // Draw glowing golden comet tail
+        // Draw glowing orb
         ctx.save();
         ctx.beginPath();
-        ctx.arc(orb.currentX, orb.currentY, 6 * (1 - t * 0.4), 0, Math.PI * 2);
-        ctx.fillStyle = '#FFF2A8';
-        ctx.shadowBlur = 18;
-        ctx.shadowColor = '#D4AF37';
-        ctx.fill();
-
-        // Secondary outer aura
-        ctx.beginPath();
-        ctx.arc(orb.currentX, orb.currentY, 14 * (1 - t * 0.3), 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(212, 175, 55, 0.25)';
+        ctx.arc(orb.currentX, orb.currentY, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#D4AF37';
+        ctx.shadowColor = '#F5DE88';
+        ctx.shadowBlur = 15;
         ctx.fill();
         ctx.restore();
 
-        // Spawn mini sparkles in comet wake
+        // Trail spark
         if (Math.random() > 0.4) {
           particles.push({
-            x: orb.currentX + (Math.random() - 0.5) * 8,
-            y: orb.currentY + (Math.random() - 0.5) * 8,
+            x: orb.currentX + (Math.random() - 0.5) * 6,
+            y: orb.currentY + (Math.random() - 0.5) * 6,
             vx: (Math.random() - 0.5) * 1.5,
             vy: (Math.random() - 0.5) * 1.5,
-            size: Math.random() * 2 + 1,
+            size: 2,
             color: '#F5DE88',
             alpha: 0.9,
             decay: 0.05,
@@ -303,8 +314,14 @@ export const ParticleBurst: React.FC = () => {
     const muted = toggleAudioMute();
     setIsMuted(muted);
     if (!muted) {
-      playLuxuryChime('sparkle');
+      playSlideSound(1);
     }
+  };
+
+  const handleSelectStyle = (style: SlideSoundStyle) => {
+    setSlideSoundStyle(style);
+    setCurrentStyle(style);
+    playSlideSound(1, style);
   };
 
   return (
@@ -317,30 +334,106 @@ export const ParticleBurst: React.FC = () => {
       />
 
       {/* Floating Interactive Luxury Audio FX Capsule */}
-      <aside aria-label="Audio controller" className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-full glass-panel-gold border border-[#D4AF37]/35 shadow-[0_10px_30px_rgba(0,0,0,0.7)] backdrop-blur-xl transition-all duration-300 hover:border-[#D4AF37]/70">
-        <button
-          onClick={handleToggleSound}
-          title={isMuted ? 'Unmute luxury sound chimes' : 'Mute luxury sound chimes'}
-          className="flex items-center gap-2 text-xs font-semibold text-[#F5DE88] hover:text-[#FFF] transition-colors cursor-pointer"
-        >
-          {isMuted ? (
-            <VolumeX className="w-4 h-4 text-[#88847A]" />
-          ) : (
-            <Volume2 className={`w-4 h-4 text-[#D4AF37] ${soundActive ? 'scale-125 text-[#FFF]' : ''} transition-transform`} />
-          )}
-          <span className="text-[10px] tracking-wider uppercase font-mono">
-            {isMuted ? 'CHIMES MUTED' : 'ROYAL CHIMES ON'}
-          </span>
-        </button>
+      <aside aria-label="Audio controller" className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 hidden sm:flex flex-col items-end gap-2">
+        
+        {/* Expanded Sound Customizer Menu */}
+        {showSoundMenu && !isMuted && (
+          <div className="w-72 rounded-2xl glass-panel-gold border border-[#D4AF37]/40 shadow-[0_15px_40px_rgba(0,0,0,0.85)] backdrop-blur-2xl p-3.5 space-y-3 animate-in fade-in slide-in-from-bottom-3 duration-200">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className="text-[11px] uppercase tracking-wider font-semibold text-[#D4AF37] flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5" /> Slide Sound Profiles
+              </span>
+              <span className="text-[10px] text-[#A6A295] font-mono">PRO AUDIO</span>
+            </div>
 
-        {/* Live Audio Equalizer Wave Bar */}
-        {!isMuted && (
-          <div className="flex items-center gap-0.5 ml-1 h-3.5">
-            <span className={`w-0.5 bg-[#D4AF37] rounded-full transition-all duration-150 ${soundActive ? 'h-3.5' : 'h-1.5 animate-pulse'}`} />
-            <span className={`w-0.5 bg-[#F5DE88] rounded-full transition-all duration-150 ${soundActive ? 'h-4' : 'h-2 animate-pulse delay-75'}`} />
-            <span className={`w-0.5 bg-[#D4AF37] rounded-full transition-all duration-150 ${soundActive ? 'h-3' : 'h-1 animate-pulse delay-150'}`} />
+            {/* Sound Style Presets List */}
+            <div className="space-y-1.5">
+              {SLIDE_SOUND_STYLES.map((style) => (
+                <button
+                  key={style.id}
+                  onClick={() => handleSelectStyle(style.id)}
+                  className={`w-full text-left p-2 rounded-xl transition-all flex items-center justify-between cursor-pointer ${
+                    currentStyle === style.id
+                      ? 'bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#FAF7EE]'
+                      : 'hover:bg-white/5 text-[#B8B4A8] hover:text-[#FAF7EE]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">{style.icon}</span>
+                    <div>
+                      <div className="text-xs font-medium leading-none">{style.label}</div>
+                      <div className="text-[9px] text-[#88847A] mt-0.5 line-clamp-1">{style.description}</div>
+                    </div>
+                  </div>
+                  {currentStyle === style.id && (
+                    <Check className="w-3.5 h-3.5 text-[#D4AF37] flex-shrink-0" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Audition / Test Buttons */}
+            <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+              <span className="text-[10px] text-[#A6A295]">Test Slide Glide:</span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => playSlideSound(-1)}
+                  className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-[10px] font-semibold text-[#DFDACD] hover:text-[#FAF7EE] flex items-center gap-1 transition-colors cursor-pointer"
+                  title="Test Backward Slide Sound"
+                >
+                  <ChevronLeft className="w-3 h-3" /> Prev
+                </button>
+                <button
+                  onClick={() => playSlideSound(1)}
+                  className="px-2 py-1 rounded-lg bg-gradient-to-r from-[#D4AF37]/30 to-[#C59F2D]/30 border border-[#D4AF37]/40 hover:from-[#D4AF37]/50 hover:to-[#C59F2D]/50 text-[10px] font-semibold text-[#F5DE88] flex items-center gap-1 transition-colors cursor-pointer"
+                  title="Test Forward Slide Sound"
+                >
+                  Next <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
           </div>
         )}
+
+        {/* Floating Capsule Bar */}
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-full glass-panel-gold border border-[#D4AF37]/35 shadow-[0_10px_30px_rgba(0,0,0,0.7)] backdrop-blur-xl transition-all duration-300 hover:border-[#D4AF37]/70">
+          <button
+            onClick={handleToggleSound}
+            title={isMuted ? 'Unmute luxury sound chimes' : 'Mute luxury sound chimes'}
+            className="flex items-center gap-2 text-xs font-semibold text-[#F5DE88] hover:text-[#FFF] transition-colors cursor-pointer"
+          >
+            {isMuted ? (
+              <VolumeX className="w-4 h-4 text-[#88847A]" />
+            ) : (
+              <Volume2 className={`w-4 h-4 text-[#D4AF37] ${soundActive ? 'scale-125 text-[#FFF]' : ''} transition-transform`} />
+            )}
+            <span className="text-[10px] tracking-wider uppercase font-mono">
+              {isMuted ? 'CHIMES MUTED' : 'ROYAL SOUND FX'}
+            </span>
+          </button>
+
+          {/* Quick Sound Settings Toggle Button */}
+          {!isMuted && (
+            <button
+              onClick={() => setShowSoundMenu(!showSoundMenu)}
+              title="Configure slide sound effects"
+              className={`p-1 rounded-full text-[10px] transition-colors cursor-pointer ${
+                showSoundMenu ? 'bg-[#D4AF37] text-black font-bold' : 'hover:bg-white/10 text-[#D4AF37]'
+              }`}
+            >
+              <Sliders className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {/* Live Audio Equalizer Wave Bar */}
+          {!isMuted && (
+            <div className="flex items-center gap-0.5 ml-0.5 h-3.5">
+              <span className={`w-0.5 bg-[#D4AF37] rounded-full transition-all duration-150 ${soundActive ? 'h-3.5' : 'h-1.5 animate-pulse'}`} />
+              <span className={`w-0.5 bg-[#F5DE88] rounded-full transition-all duration-150 ${soundActive ? 'h-4' : 'h-2 animate-pulse delay-75'}`} />
+              <span className={`w-0.5 bg-[#D4AF37] rounded-full transition-all duration-150 ${soundActive ? 'h-3' : 'h-1 animate-pulse delay-150'}`} />
+            </div>
+          )}
+        </div>
       </aside>
     </>
   );

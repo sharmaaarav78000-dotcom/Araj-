@@ -259,10 +259,28 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button
+                  onClick={() => navigateTo('legacy')}
+                  className="hover:text-[#F5DE88] text-[#FAF7EE] font-medium transition-colors text-left flex items-center gap-1.5"
+                >
+                  <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+                  <span>Our Legacy Since 1985</span>
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => navigateTo('story')}
                   className="hover:text-[#FAF7EE] transition-colors"
                 >
                   Our 1985 Agra Mill Story
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('play-araj-intro'))}
+                  className="hover:text-[#F5DE88] text-[#D4AF37] font-medium transition-colors text-left flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="w-3 h-3 text-[#F5DE88]" />
+                  <span>Watch Cinematic Brand Intro</span>
                 </button>
               </li>
             </ul>

@@ -8,15 +8,11 @@ import {
   Menu, 
   X, 
   Sparkles, 
-  Cpu, 
-  Gift, 
   Volume2, 
   VolumeX, 
   Bot, 
-  Smartphone,
-  Building2,
-  ChefHat,
-  PhoneCall
+  PhoneCall,
+  MessageSquare
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { toggleAudioMute, getIsAudioMuted } from '../utils/sound';
@@ -39,11 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
     openSearch, 
     openAccount,
     setActiveCategory,
-    openScanner,
-    openHamper,
-    openAiChat,
-    openInstallModal,
-    openDistributorModal
+    openAiChat
   } = useStore();
 
   const handleAudioToggle = () => {
@@ -64,10 +56,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
     { label: 'Spices (मसाले)', action: () => { setActiveCategory('SPICES'); onNavigate('spices'); } },
     { label: 'Ground Spices (पिसे)', action: () => { setActiveCategory('GROUND SPICES'); onNavigate('catalog'); } },
     { label: 'Blended Masale (मिक्स)', action: () => { setActiveCategory('BLENDED SPICES'); onNavigate('catalog'); } },
-    { label: 'Chef Recipes', action: () => onNavigate('chef-kitchen') },
     { label: 'Dry Fruits', action: () => { setActiveCategory('DRY FRUITS'); onNavigate('dry-fruits'); } },
-    { label: 'Gift Packs', action: () => { setActiveCategory('GIFT PACKS'); onNavigate('gifting'); } },
-    { label: 'Our Story', action: () => onNavigate('story') },
+    { label: 'Gifting', action: () => { setActiveCategory('GIFT PACKS'); onNavigate('gifting'); } },
   ];
 
   return (
@@ -84,20 +74,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={openDistributorModal}
-            className="text-[#F5DE88] hover:text-white font-semibold underline underline-offset-2 flex items-center gap-1 cursor-pointer"
-          >
-            <Building2 className="w-3 h-3 text-[#D4AF37]" />
-            <span>B2B / Dealership</span>
-          </button>
-          <span className="text-white/30">•</span>
           <a
-            href="tel:+918979221409"
+            href="tel:+919917104448"
             className="hover:text-[#F5DE88] transition-colors flex items-center gap-1"
           >
             <PhoneCall className="w-3 h-3 text-[#D4AF37]" />
-            <span className="hidden sm:inline">+91 89792 21409</span>
+            <span className="hidden sm:inline">+91 99171 04448</span>
             <span className="sm:hidden">Agra Mill</span>
           </a>
         </div>
@@ -158,61 +140,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
 
           {/* Right Action Icons */}
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* B2B / Dealership Button */}
-            <button
-              onClick={openDistributorModal}
-              id="navbar-dealership-btn"
-              title="Apply for B2B Dealership & Wholesale"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#D4AF37]/25 to-[#E69C36]/25 hover:from-[#D4AF37]/40 hover:to-[#E69C36]/40 border border-[#D4AF37]/50 text-[#F5DE88] text-xs font-semibold tracking-wide transition-all shadow-[0_0_12px_rgba(212,175,55,0.2)] cursor-pointer"
-            >
-              <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span className="text-[11px] font-bold">B2B / Dealership</span>
-            </button>
-
-            {/* Working Futuristic Purity Scanner Trigger */}
-            <button
-              onClick={() => openScanner()}
-              id="navbar-scanner-btn"
-              title="Open Laboratory Purity & Molecular Scanner"
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 border border-[#D4AF37]/40 text-[#FAF7EE] hover:text-[#FFF] text-xs font-semibold tracking-wide transition-all shadow-[0_0_12px_rgba(212,175,55,0.15)] hover:shadow-[0_0_18px_rgba(212,175,55,0.3)] cursor-pointer"
-            >
-              <Cpu className="w-3.5 h-3.5 text-[#D4AF37] animate-pulse" />
-              <span className="font-mono text-[11px] uppercase tracking-wider">Purity Scanner</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#48BB78] animate-ping" />
-            </button>
-
-            {/* Bespoke Hamper Atelier Trigger */}
-            <button
-              onClick={openHamper}
-              id="navbar-hamper-btn"
-              title="Architect Custom Royal Gift Hamper"
-              className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-pill text-xs font-medium text-[#DFDACD] hover:text-[#FAF7EE] hover:border-[#D4AF37]/50 transition-all cursor-pointer"
-            >
-              <Gift className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Bespoke Coffret</span>
-            </button>
-
             {/* AI Spicer & Sommelier Chatbot Trigger */}
             <button
               onClick={openAiChat}
               id="navbar-ai-spicer-btn"
               title="Consult Araj Royal AI Spicer & Sommelier"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#D4AF37]/20 to-[#FAF7EE]/10 hover:from-[#D4AF37]/35 hover:to-[#FAF7EE]/25 border border-[#D4AF37]/50 text-[#FAF7EE] text-xs font-semibold tracking-wide transition-all shadow-[0_0_15px_rgba(212,175,55,0.2)] cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full glass-btn-secondary text-[#FAF7EE] text-xs font-semibold tracking-wide cursor-pointer"
             >
               <Bot className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span className="font-mono text-[11px] uppercase tracking-wider">AI Spicer</span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#48BB78] animate-ping" />
-            </button>
-
-            {/* Android App Download Trigger */}
-            <button
-              onClick={openInstallModal}
-              id="navbar-android-app-btn"
-              title="Download ARAJ App for Android"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#D4AF37]/25 to-[#F5DE88]/20 hover:from-[#D4AF37]/40 hover:to-[#F5DE88]/35 border border-[#D4AF37]/55 text-[#FAF7EE] text-xs font-semibold tracking-wide transition-all shadow-[0_0_12px_rgba(212,175,55,0.25)] cursor-pointer active:scale-95"
-            >
-              <Smartphone className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span className="text-[11px] font-bold">Android App</span>
             </button>
 
             {/* Audio Synthesis Chime Mute Toggle */}
@@ -220,7 +157,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               onClick={handleAudioToggle}
               title={isMuted ? 'Unmute luxury sound chimes' : 'Mute luxury sound chimes'}
               aria-label="Toggle sound effects"
-              className="hidden sm:flex p-2 rounded-full text-[#A6A295] hover:text-[#FAF7EE] hover:bg-white/5 transition-colors cursor-pointer"
+              className="hidden sm:flex p-2 sm:p-2.5 rounded-full glass-btn-icon text-[#A6A295] hover:text-[#FAF7EE] transition-all cursor-pointer"
             >
               {isMuted ? (
                 <VolumeX className="w-4 h-4 text-[#88847A]" />
@@ -234,9 +171,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               id="navbar-search-btn"
               onClick={openSearch}
               aria-label="Search products"
-              className="p-2 sm:p-2.5 rounded-full text-[#DFDACD] hover:text-[#FFF] hover:bg-[#D4AF37]/15 border border-transparent hover:border-[#D4AF37]/30 transition-all duration-200"
+              className="p-2 sm:p-2.5 rounded-full glass-btn-icon text-[#DFDACD] hover:text-[#FFF]"
             >
-              <Search className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              <Search className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#D4AF37]" />
             </button>
 
             {/* Wishlist Icon */}
@@ -244,9 +181,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               id="navbar-wishlist-btn"
               onClick={openWishlist}
               aria-label="Wishlist"
-              className="hidden sm:flex relative p-2 sm:p-2.5 rounded-full text-[#DFDACD] hover:text-[#FFF] hover:bg-[#D4AF37]/15 border border-transparent hover:border-[#D4AF37]/30 transition-all duration-200"
+              className="hidden sm:flex relative p-2 sm:p-2.5 rounded-full glass-btn-icon text-[#DFDACD] hover:text-[#FFF]"
             >
-              <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#DFDACD]" />
               {wishlist.length > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-[#C59F2D] text-[#070709] text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-md">
                   {wishlist.length}
@@ -260,10 +197,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               onClick={openAccount}
               aria-label={user ? `Signed in as ${user.displayName || user.email}` : "Sign In & Register"}
               title={user ? `Patron Sanctuary: ${user.displayName || user.email}` : "Sign In with Gmail / Register"}
-              className={`relative p-1.5 sm:p-2 rounded-full transition-all duration-200 hidden sm:flex items-center gap-1.5 cursor-pointer ${
+              className={`relative p-1.5 sm:p-2 sm:px-3 rounded-full glass-btn transition-all duration-200 hidden sm:flex items-center gap-1.5 cursor-pointer ${
                 user 
-                  ? 'bg-[#D4AF37]/15 border border-[#D4AF37]/60 text-[#FAF7EE] hover:border-[#D4AF37] hover:shadow-[0_0_12px_rgba(212,175,55,0.3)]' 
-                  : 'text-[#DFDACD] hover:text-[#FFF] hover:bg-[#D4AF37]/15 border border-transparent hover:border-[#D4AF37]/30'
+                  ? 'glass-btn-secondary border-[#D4AF37]/60 text-[#FAF7EE]' 
+                  : 'glass-btn-pill text-[#DFDACD] hover:text-[#FFF]'
               }`}
             >
               {user ? (
@@ -286,7 +223,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
                 </>
               ) : (
                 <>
-                  <User className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                  <User className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#D4AF37]" />
                   <span className="text-[11px] font-semibold text-[#D4AF37] hidden md:inline">
                     Sign In
                   </span>
@@ -294,22 +231,37 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               )}
             </button>
 
+            {/* AI Chat Box Trigger Button */}
+            <button
+              id="navbar-ai-chat-btn"
+              onClick={openAiChat}
+              aria-label="Open AI Chat Box"
+              title="Chat with Araj AI Spicer & Sommelier"
+              className="relative p-1.5 sm:p-2 sm:px-3 rounded-full glass-btn-pill border border-[#D4AF37]/40 hover:border-[#D4AF37] hover:bg-[#D4AF37]/15 transition-all hidden sm:flex items-center gap-1.5 cursor-pointer group text-[#FAF7EE]"
+            >
+              <MessageSquare className="w-4 h-4 text-[#D4AF37] group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-semibold hidden md:inline text-[#FAF7EE]">
+                AI Chat
+              </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#48BB78] animate-ping shrink-0" />
+            </button>
+
             {/* Shopping Bag Button with Counter */}
             <button
               id="navbar-cart-btn"
               onClick={openCart}
               aria-label="Shopping Bag"
-              className="relative flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-gradient-to-r from-[#D4AF37]/25 via-[#E6CA65]/20 to-[#D4AF37]/15 border border-[#D4AF37]/45 text-[#FFF] hover:border-[#D4AF37] hover:shadow-[0_0_18px_rgba(212,175,55,0.35)] transition-all duration-300 group cursor-pointer"
+              className="relative flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full glass-btn-gold text-[#0A0A0E] font-bold group cursor-pointer"
             >
               <div className="relative">
-                <ShoppingBag className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#F5DE88] group-hover:scale-110 transition-transform" />
+                <ShoppingBag className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#0A0A0E] group-hover:scale-110 transition-transform" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-[#D4AF37] to-[#F3D375] text-[#070709] text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-md">
+                  <span className="absolute -top-2 -right-2.5 bg-[#0A0A0E] text-[#F5DE88] border border-[#D4AF37] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md">
                     {cartCount}
                   </span>
                 )}
               </div>
-              <span className="text-xs font-semibold tracking-wider uppercase text-[#FFF] hidden md:inline">
+              <span className="text-xs font-extrabold tracking-wider uppercase text-[#0A0A0E] hidden md:inline">
                 Cart
               </span>
             </button>
@@ -319,9 +271,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               id="navbar-mobile-menu-btn"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
               aria-label="Toggle Navigation Menu"
-              className="lg:hidden p-2 rounded-full text-[#DFDACD] hover:text-[#FFF] hover:bg-white/10"
+              className="lg:hidden p-2 rounded-full glass-btn-icon text-[#DFDACD] hover:text-[#FFF]"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5 text-[#D4AF37]" />}
             </button>
           </div>
         </motion.nav>
@@ -330,9 +282,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
       {/* Mobile Drawer Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <>
+          <div key="mobile-drawer-container">
             {/* Backdrop for click-outside dismissal */}
             <motion.div
+              key="mobile-drawer-backdrop"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -340,6 +293,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
             />
             <motion.div
+              key="mobile-drawer-content"
               initial={{ opacity: 0, y: -15, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -15, scale: 0.98 }}
@@ -356,83 +310,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
                   </span>
                 </div>
 
-                {/* Special Futuristic Triggers for Mobile */}
-                <div className="grid grid-cols-3 gap-2 pb-2">
+                {/* Special AI Spicer Trigger for Mobile */}
+                <div className="pb-2">
                   <button
                     onClick={() => {
                       openAiChat();
                       setMobileMenuOpen(false);
                     }}
-                    className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-gradient-to-b from-[#D4AF37]/25 to-[#FAF7EE]/10 border border-[#D4AF37]/50 text-[11px] text-[#FAF7EE] font-semibold active:scale-95 transition-all"
+                    className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl glass-btn-secondary text-xs text-[#FAF7EE] font-semibold transition-all cursor-pointer"
                   >
                     <Bot className="w-4 h-4 text-[#D4AF37]" />
-                    <span>AI Spicer</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      openScanner();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/35 text-[11px] text-[#FAF7EE] font-medium active:scale-95 transition-all"
-                  >
-                    <Cpu className="w-4 h-4 text-[#D4AF37]" />
-                    <span>Scanner</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      openHamper();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl glass-pill text-[11px] text-[#FAF7EE] font-medium active:scale-95 transition-all"
-                  >
-                    <Gift className="w-4 h-4 text-[#D4AF37]" />
-                    <span>Hamper</span>
+                    <span>Consult AI Spicer &amp; Sommelier</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#48BB78] animate-ping" />
                   </button>
                 </div>
-
-                {/* Dealership / B2B Wholesale Quick Action for Mobile Drawer */}
-                <button
-                  onClick={() => {
-                    openDistributorModal();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-[#D4AF37]/30 via-[#E69C36]/20 to-[#D4AF37]/30 border border-[#D4AF37]/60 text-[#FAF7EE] active:scale-98 transition-all shadow-md cursor-pointer my-1"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[#D4AF37]/25 flex items-center justify-center text-[#F5DE88] shrink-0">
-                      <Building2 className="w-4.5 h-4.5" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xs font-bold text-[#FAF7EE] leading-none">B2B Dealership &amp; Wholesale</p>
-                      <p className="text-[10px] text-[#D4AF37] font-medium mt-0.5">Direct Agra factory pricing</p>
-                    </div>
-                  </div>
-                  <span className="px-2.5 py-1 rounded-full bg-[#D4AF37] text-[#0A0A0E] text-[10px] font-extrabold uppercase tracking-wider">
-                    Apply
-                  </span>
-                </button>
-
-                {/* Android App Quick Action for Mobile Drawer */}
-                <button
-                  onClick={() => {
-                    openInstallModal();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-[#D4AF37]/25 via-[#FAF7EE]/10 to-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#FAF7EE] active:scale-98 transition-all shadow-md cursor-pointer my-1"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[#D4AF37]/25 flex items-center justify-center text-[#D4AF37] shrink-0">
-                      <Smartphone className="w-4.5 h-4.5" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xs font-bold text-[#FAF7EE] leading-none">Download Android App</p>
-                      <p className="text-[10px] text-[#D4AF37] font-medium mt-0.5">Instant launch &amp; offline mode</p>
-                    </div>
-                  </div>
-                  <span className="px-2.5 py-1 rounded-full bg-[#D4AF37] text-[#0A0A0E] text-[10px] font-extrabold uppercase tracking-wider">
-                    Install
-                  </span>
-                </button>
 
                 {navItems.map((item) => (
                   <button
@@ -491,7 +382,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
                 </div>
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
     </>

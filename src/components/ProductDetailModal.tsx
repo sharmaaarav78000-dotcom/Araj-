@@ -2,11 +2,12 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Plus, Minus, ShoppingCart, Zap, Heart, Star, ShieldCheck, 
-  Leaf, RotateCcw, ChevronDown, ChevronUp, Share2, Check, ZoomIn, Eye
+  Leaf, RotateCcw, ChevronDown, ChevronUp, Share2, Check, ZoomIn, Eye, Camera
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { triggerParticleBurst } from '../utils/effects';
 import { playLuxuryChime } from '../utils/sound';
+import { ImageUploadModal } from './ImageUploadModal';
 
 export const ProductDetailModal: React.FC = () => {
   const { 
@@ -24,6 +25,7 @@ export const ProductDetailModal: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [loupeActive, setLoupeActive] = useState(false);
   const [loupePos, setLoupePos] = useState({ x: 50, y: 50, px: 0, py: 0 });
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const imageContainerRef = useRef<HTMLDivElement | null>(null);
 
   if (!selectedProduct) return null;
@@ -71,23 +73,28 @@ export const ProductDetailModal: React.FC = () => {
   };
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/80 backdrop-blur-xl">
-        {/* Background Click to Dismiss */}
-        <div className="fixed inset-0" onClick={closeProductDetail} />
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-4xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-3xl glass-panel-gold border border-[#D4AF37]/35 shadow-[0_25px_60px_rgba(0,0,0,0.9)] p-4 sm:p-10 z-10"
+    <>
+      <AnimatePresence>
+        <div
+          key={`product-detail-modal-${selectedProduct.id}`}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/80 backdrop-blur-xl"
         >
+          {/* Background Click to Dismiss */}
+          <div className="fixed inset-0" onClick={closeProductDetail} />
+
+          <motion.div
+            key={`product-detail-dialog-${selectedProduct.id}`}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-4xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-3xl glass-panel-gold border border-[#D4AF37]/35 shadow-[0_25px_60px_rgba(0,0,0,0.9)] p-4 sm:p-10 z-10"
+          >
           {/* Close Button */}
           <button
             onClick={closeProductDetail}
             aria-label="Close dialog"
-            className="absolute top-3 right-3 sm:top-5 sm:right-5 p-2 rounded-full glass-panel text-[#DFDACD] hover:text-white hover:bg-white/10 transition-colors z-20"
+            className="absolute top-3 right-3 sm:top-5 sm:right-5 p-2 rounded-full glass-btn-icon text-[#DFDACD] hover:text-white z-20"
           >
             <X className="w-5 h-5" />
           </button>
@@ -108,15 +115,24 @@ export const ProductDetailModal: React.FC = () => {
                   {selectedProduct.discountPercentage ? `${selectedProduct.discountPercentage}% OFF` : '50% OFF'}
                 </div>
 
-                {/* Wishlist Button */}
-                <button
-                  onClick={handleToggleWishlist}
-                  className={`absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 sm:p-2.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 ${
-                    wishlisted ? 'text-[#E53E3E] bg-[#E53E3E]/20' : 'text-[#DFDACD] hover:text-white'
-                  }`}
-                >
-                  <Heart className={`w-4 h-4 ${wishlisted ? 'fill-current' : ''}`} />
-                </button>
+                {/* Buttons overlay */}
+                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex items-center gap-2">
+                  <button
+                    onClick={() => setIsUploadModalOpen(true)}
+                    className="p-2 sm:p-2.5 rounded-full glass-btn-icon text-[#DFDACD] hover:text-[#F5DE88] hover:border-[#D4AF37]/60"
+                    title="Upload / Change exact box packaging image"
+                  >
+                    <Camera className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleToggleWishlist}
+                    className={`p-2 sm:p-2.5 rounded-full glass-btn-icon ${
+                      wishlisted ? 'text-[#E53E3E] border-[#E53E3E]/50' : 'text-[#DFDACD] hover:text-white'
+                    }`}
+                  >
+                    <Heart className={`w-4 h-4 ${wishlisted ? 'fill-current' : ''}`} />
+                  </button>
+                </div>
 
                 {/* Ambient Soft Glow */}
                 <div className="absolute inset-0 bg-radial from-amber-100/40 via-transparent to-transparent pointer-events-none" />
@@ -169,6 +185,17 @@ export const ProductDetailModal: React.FC = () => {
                   Stone-Milled Purity • 100%
                 </span>
               </div>
+
+              {/* Quick Update Button for Peri Peri packaging */}
+              {selectedProduct.id === 'SPC-7' && (
+                <button
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="w-full mt-2 py-2 px-3 rounded-xl bg-gradient-to-r from-[#D4AF37]/20 via-[#F5DE88]/20 to-[#D4AF37]/20 border border-[#D4AF37]/50 hover:border-[#F5DE88] text-xs font-semibold text-[#F5DE88] flex items-center justify-center gap-2 transition-all shadow-sm"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>Set Exact Peri Peri Packaging Artwork</span>
+                </button>
+              )}
 
               {/* Guarantees Row */}
               <div className="grid grid-cols-3 gap-2 w-full mt-3 text-center text-[10px] text-[#A6A295]">
@@ -263,10 +290,10 @@ export const ProductDetailModal: React.FC = () => {
 
                 <button
                   onClick={handleShare}
-                  className="p-2.5 rounded-xl glass-panel border border-white/15 text-[#DFDACD] hover:text-white hover:bg-white/5 ml-auto"
+                  className="p-2.5 rounded-xl glass-btn-icon text-[#DFDACD] hover:text-white ml-auto cursor-pointer"
                   title="Share product"
                 >
-                  <Share2 className="w-4 h-4" />
+                  <Share2 className="w-4 h-4 text-[#D4AF37]" />
                 </button>
               </div>
 
@@ -274,7 +301,7 @@ export const ProductDetailModal: React.FC = () => {
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
                   onClick={handleAddToCart}
-                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl glass-panel-gold border border-[#D4AF37]/50 text-[#FAF7EE] font-bold text-xs uppercase tracking-wider hover:bg-[#D4AF37]/20 transition-all duration-200"
+                  className="glass-btn-secondary flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-[#FAF7EE] font-bold text-xs uppercase tracking-wider cursor-pointer"
                 >
                   <ShoppingCart className="w-4 h-4 text-[#D4AF37]" />
                   <span>ADD TO CART</span>
@@ -282,7 +309,7 @@ export const ProductDetailModal: React.FC = () => {
 
                 <button
                   onClick={handleBuyNow}
-                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-lg transition-all duration-200"
+                  className="glass-btn-gold flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-[#0A0A0E] font-extrabold text-xs uppercase tracking-wider cursor-pointer"
                 >
                   <Zap className="w-4 h-4 fill-[#0A0A0E] text-[#0A0A0E]" />
                   <span>BUY NOW</span>
@@ -363,5 +390,14 @@ export const ProductDetailModal: React.FC = () => {
         </motion.div>
       </div>
     </AnimatePresence>
-  );
+
+    {/* Image Upload Modal for exact product box image */}
+    <ImageUploadModal
+      isOpen={isUploadModalOpen}
+      onClose={() => setIsUploadModalOpen(false)}
+      productId={selectedProduct.id}
+      defaultProductName={selectedProduct.name}
+    />
+  </>
+);
 };

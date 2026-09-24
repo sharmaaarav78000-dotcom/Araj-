@@ -45,9 +45,10 @@ export const CartDrawer: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-hidden">
+      <div key="cart-drawer-wrapper" className="fixed inset-0 z-50 overflow-hidden">
         {/* Backdrop overlay */}
         <motion.div
+          key="cart-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -57,6 +58,7 @@ export const CartDrawer: React.FC = () => {
 
         <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
           <motion.div
+            key="cart-drawer-panel"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -82,7 +84,7 @@ export const CartDrawer: React.FC = () => {
               <button
                 onClick={closeCart}
                 aria-label="Close cart"
-                className="p-2 rounded-full text-[#DFDACD] hover:text-white hover:bg-white/10 transition-colors"
+                className="p-2 rounded-full glass-btn-icon text-[#DFDACD] hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -127,7 +129,7 @@ export const CartDrawer: React.FC = () => {
                   </p>
                   <button
                     onClick={closeCart}
-                    className="mt-2 px-6 py-2.5 rounded-full bg-[#D4AF37] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-md"
+                    className="mt-2 px-6 py-2.5 rounded-full glass-btn-gold text-[#0A0A0E] font-bold text-xs uppercase tracking-wider"
                   >
                     Start Shopping
                   </button>
@@ -218,7 +220,7 @@ export const CartDrawer: React.FC = () => {
                   </div>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl glass-panel-gold border border-[#D4AF37]/40 text-xs font-bold text-[#FAF7EE] hover:bg-[#D4AF37]/20 transition-all"
+                    className="px-4 py-2 rounded-xl glass-btn-secondary text-xs font-bold text-[#FAF7EE] cursor-pointer"
                   >
                     Apply
                   </button>
@@ -231,7 +233,7 @@ export const CartDrawer: React.FC = () => {
                     </span>
                     <button
                       onClick={() => setAppliedCoupon(null)}
-                      className="text-xs text-[#E53E3E] hover:underline"
+                      className="text-xs text-[#E53E3E] hover:underline cursor-pointer"
                     >
                       Remove
                     </button>
@@ -276,7 +278,7 @@ export const CartDrawer: React.FC = () => {
                 <button
                   id="cart-proceed-checkout-btn"
                   onClick={openCheckout}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider shadow-lg hover:brightness-110 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                  className="w-full py-3.5 rounded-xl glass-btn-gold text-[#0A0A0E] font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>PROCEED TO CHECKOUT</span>
                   <ArrowRight className="w-4 h-4" />

@@ -91,18 +91,18 @@
   },
   {
     "id": "SPC-7",
-    "name": "Chunky Chinese Masala",
-    "price": 65,
-    "originalPrice": 130,
+    "name": "Peri Peri Masala",
+    "price": 140,
+    "originalPrice": 160,
     "category": "spices",
-    "image": "/products-spices/chunky-chinese-masala.png",
-    "description": "Special blend of spices for authentic Indo-Chinese cuisine. Perfect for noodles, fried rice, and Chinese-style vegetables.",
+    "image": "/products-spices/peri-peri-masala.png",
+    "description": "ARA J Premium Spice Blend Peri Peri Masala. Bold flavour, real taste with 100% natural pure spices and no added preservatives. Ideal for seasoning french fries, snacks, pastas, wraps, and roasted vegetables.",
     "weight": "100g",
-    "nutritionalInfo": "Blend of natural herbs and spices",
+    "nutritionalInfo": "100% Natural Spice Blend, Rich Aroma, Pure Quality, Zero Preservatives",
     "inStock": true,
     "featured": true,
     "rating": 4.9,
-    "reviews": 38
+    "reviews": 48
   },
   {
     "id": "SPC-8",

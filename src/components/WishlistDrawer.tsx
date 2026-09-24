@@ -17,9 +17,10 @@ export const WishlistDrawer: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-hidden">
+      <div key="wishlist-drawer-wrapper" className="fixed inset-0 z-50 overflow-hidden">
         {/* Backdrop overlay */}
         <motion.div
+          key="wishlist-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -29,6 +30,7 @@ export const WishlistDrawer: React.FC = () => {
 
         <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
           <motion.div
+            key="wishlist-drawer-panel"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -54,7 +56,7 @@ export const WishlistDrawer: React.FC = () => {
               <button
                 onClick={closeWishlist}
                 aria-label="Close wishlist"
-                className="p-2 rounded-full text-[#DFDACD] hover:text-white hover:bg-white/10 transition-colors"
+                className="p-2 rounded-full glass-btn-icon text-[#DFDACD] hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -75,7 +77,7 @@ export const WishlistDrawer: React.FC = () => {
                   </p>
                   <button
                     onClick={closeWishlist}
-                    className="mt-2 px-6 py-2.5 rounded-full bg-[#D4AF37] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-md"
+                    className="mt-2 px-6 py-2.5 rounded-full glass-btn-gold text-[#0A0A0E] font-bold text-xs uppercase tracking-wider cursor-pointer"
                   >
                     Explore Products
                   </button>
@@ -131,7 +133,7 @@ export const WishlistDrawer: React.FC = () => {
                           closeWishlist();
                           openCart();
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-[#D4AF37] text-[#0A0A0E] font-bold text-[11px] flex items-center gap-1.5 hover:brightness-110 shadow-sm"
+                        className="px-3 py-1.5 rounded-lg glass-btn-gold text-[#0A0A0E] font-bold text-[11px] flex items-center gap-1.5 cursor-pointer"
                       >
                         <ShoppingBag className="w-3 h-3" />
                         <span>Add</span>
@@ -151,7 +153,7 @@ export const WishlistDrawer: React.FC = () => {
                     closeWishlist();
                     openCart();
                   }}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider shadow-lg hover:brightness-110 flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-3.5 rounded-xl glass-btn-gold text-[#0A0A0E] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>MOVE ALL TO CART</span>
                   <ArrowRight className="w-4 h-4" />

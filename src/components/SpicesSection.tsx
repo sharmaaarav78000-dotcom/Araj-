@@ -15,7 +15,7 @@ export const SpicesSection: React.FC<{ onExploreSpices: () => void }> = ({ onExp
      p.name.includes('Haldi') ||
      p.name.includes('Turmeric') ||
      p.name.includes('Chatpata Chat Masala') ||
-     p.name.includes('Chunky Chinese Masala') ||
+     p.name.includes('Peri Peri Masala') ||
      p.name.includes('Black Pepper') ||
      p.name.includes('Kashmiri') ||
      p.name.includes('Garam Masala'))
@@ -55,7 +55,7 @@ export const SpicesSection: React.FC<{ onExploreSpices: () => void }> = ({ onExp
           { name: 'Chana Masala', weight: '100g', price: '₹80', mrp: '₹160', tag: '50% OFF' },
           { name: 'Haldi (Turmeric)', weight: '500g', price: '₹130', mrp: '₹260', tag: '50% OFF' },
           { name: 'Chatpata Chat', weight: '100g', price: '₹80', mrp: '₹159', tag: '50% OFF' },
-          { name: 'Chunky Chinese', weight: '100g', price: '₹65', mrp: '₹130', tag: '50% OFF' }
+          { name: 'Peri Peri Masala', weight: '100g', price: '₹140', mrp: '₹160', tag: '13% OFF' }
         ].map((item) => (
           <div
             key={item.name}

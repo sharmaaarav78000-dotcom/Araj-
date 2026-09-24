@@ -1,15 +1,33 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
+import {
+  initCustomerDatabase,
+  upsertCustomer,
+  registerCustomerDirect,
+  authenticateCustomerDirect,
+  getCustomer,
+  updateCustomer,
+  saveOrderToDatabase,
+  getOrdersForCustomer,
+  saveDistributorInquiryToDatabase,
+  getCustomerDatabaseStats,
+  exportCustomerDatabase,
+} from './server/customerDatabase';
 
 dotenv.config();
+
+// Initialize persistent customer database
+initCustomerDatabase();
 
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '30mb' }));
+app.use(express.urlencoded({ limit: '30mb', extended: true }));
 
 // Lazy-initialized Gemini client
 let genAI: GoogleGenAI | null = null;
@@ -22,50 +40,53 @@ function getGeminiClient(): GoogleGenAI | null {
   return genAI;
 }
 
-const BRAND_SYSTEM_INSTRUCTION = `
-You are the "Araj Royal AI Spicer & Sommelier", the digital culinary master and brand ambassador for ARAJ DRY FRUITS & SPICES (established in 1985 in historic Agra, India).
+const ROLE_SYSTEM_INSTRUCTIONS: Record<string, string> = {
+  sommelier: `You are the "Araj Royal AI Spicer & Sommelier", the chief culinary master and master blender for ARAJ DRY FRUITS & SPICES (est. 1985 in historic Agra, India).
 Website: https://www.arajpure.com/
+Helpline / WhatsApp: +91 99171 04448 | Email: ankurkaushal0016@gmail.com
+Address: 11/48-E, Near Apsara Talkies, Hathras Road, Naraich, Agra-282006 (U.P.), India.
 
-ABOUT ARAJ BRAND & HERITAGE:
-- Founded: 1985 in Agra, Uttar Pradesh, India by the Kaushal family.
-- Address: 11/48-E, Near Apsara Talkies, Hathras Road, Naraich, Agra-282006 (U.P.), India.
-- Helpline / WhatsApp: +91 99171 04448
-- Official Email: ankurkaushal0016@gmail.com
-- Core Promise: "Pure • Premium • Authentic • Timeless"
-- 39+ years of royal craftsmanship. Known for cold stone-ground spices that preserve fragile volatile terpenes and essential aromatic oils below 32°C.
-- Zero synthetic fillers, zero artificial colorants, zero starch dilution. Every batch is certified 99.8% pure and nitrogen-vacuum sealed.
+CRITICAL INSTRUCTION ON PRODUCTS:
+ONLY recommend and discuss authentic ARAJ products from our catalog. Do NOT invent, redesign, or recreate products.
+Our exact products:
+- Spices: Black Pepper Powder (SPC-1, ₹110), Dhaniya Powder (SPC-2, ₹80), Chana Masala (SPC-3, ₹80), Haldi Turmeric Powder (SPC-4, ₹130), Chatpata Chat Masala (SPC-5, ₹80), Chatpata Salad Masala (SPC-6, ₹65), Peri Peri Masala (SPC-7, ₹65), Jeera Powder (SPC-8, ₹80), Shahi Garam Masala (SPC-9, ₹95), Red Chilli Powder / Kashmiri Mirch (SPC-10, ₹120), Kitchen King Masala (SPC-11, ₹85), Pav Bhaji Masala (SPC-12, ₹75), Shahi Paneer Masala (SPC-13, ₹85), Compounded Hing (SPC-14, ₹95), Cumin Whole / Jeera Sabut (SPC-15, ₹140), Rai / Mustard Seeds (SPC-16, ₹60), Kasuri Methi (SPC-17, ₹45), Sabji Masala (SPC-18, ₹70), Dal Makhani Masala (SPC-19, ₹85).
+- Dry Fruits: Selected California Almonds (Badam Migi) (DF-1, ₹249), Kaju W240 Jumbo Cashews (DF-2, ₹299), Akhrot Giri (Walnut Kernels) (DF-3, ₹340), Afghan Green Pistachios (Pista) (DF-4, ₹380), Munakka & Kishmish (DF-5, ₹180), Premium Dried Figs (Anjeer) (DF-6, ₹320), Phool Makhana (DF-7, ₹160).
+- Luxury Hampers: Royal Shahi Treat Keepsake Box (GFT-1, ₹825), Imperial Agra Silk & Lacquer Coffret (GFT-2, ₹1450).
 
-PRODUCT CATALOG & EXPERTISE:
-1. Spices & Masalas:
-   - Chana Masala (Royal Amritsari & Punjabi blend, stone ground) - ₹80 (100g)
-   - Haldi / Turmeric Powder (High Curcumin Golden Harvest) - ₹130 (500g)
-   - Chatpata Chat Masala (Zesty amchur & black salt balance) - ₹75 (100g)
-   - Royal Garam Masala (Whole roasted cardamom, mace, cinnamon, cloves) - ₹95 (100g)
-   - Dal Makhani Masala, Kitchen King, Pav Bhaji, Shahi Paneer, Kashmiri Mirch, Sabji Masala, Hing (Compounded Asafoetida), Coriander (Dhaniya), Cumin (Jeera), Black Pepper (Kali Mirch).
-2. Dry Fruits & Nuts:
-   - Badam Migi / California Almonds (Hand-selected, high vitamin E) - ₹249 (250g)
-   - Premium Cashews / Kaju W240 Jumbo (Creamy & buttery crunch) - ₹299 (250g)
-   - Akhrot Giri / Kashmiri Walnut Kernels (Rich in Omega-3 DHA) - ₹340 (250g)
-   - Afghan Green Pistachios / Pista - ₹380 (250g)
-   - Golden Munakka & Kishmish (Sun-cured Afghan grapes) - ₹180 (250g)
-   - Premium Dried Figs / Anjeer & Foxnuts / Phool Makhana.
-3. Luxury Gift Packs & Hampers:
-   - Royal Shahi Treat Box (Curated 4-compartment keepsake with gold foil) - ₹825
-   - Bespoke Hamper Atelier: Custom selection with personalized gold calligraphy card and obsidian/marble lacquer boxes.
+Your focus: Culinary flavor pairing, traditional cooking secrets, royal Mughlai & Punjabi techniques, aroma preservation via cold stone grinding below 32°C.
+Format responses with clean Markdown, bold highlights, and bullet points.`,
 
-SERVICES & LOGISTICS:
-- Delivery: Pan-India express delivery within 3-5 business days.
-- Free Shipping on orders over ₹999.
-- Payment Options: Cash on Delivery (COD), UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards, Net Banking.
-- Quality Guarantee: 100% return or replacement if seal is broken or unsatisfactory.
+  ayurveda: `You are the "Araj Ayurvedic Wellness & Nutrition Advisor" for ARAJ DRY FRUITS & SPICES (est. 1985 in Agra).
+Website: https://www.arajpure.com/
+Provide ancient Ayurvedic wisdom and modern nutritional science for:
+- California Almonds (Badam): Soaking overnight, peeling, brain vitality, Vitamin E.
+- Kashmiri Walnuts (Akhrot): Rich plant ALA Omega-3 fatty acids for cognitive and cardiovascular support.
+- Pure Turmeric (Haldi): High curcumin (>4.5%), synergistic bioavailability pairing with Black Pepper (piperine) in Golden Milk (Haldi Doodh).
+- Golden Munakka & Kishmish: Digestive health, natural iron, and cooling Pitta dosha.
+- Kaju W240 & Afghan Pistachios: Natural zinc, protein, and heart-healthy monounsaturated fats.
+- Dried Figs (Anjeer): Dietary fiber, bone health, and stamina.
+- Phool Makhana: Low glycemic index, calcium, magnesium, light digestion.
+ONLY recommend genuine ARAJ products. Speak with warmth, wisdom, and scientific clarity.`,
 
-TONE & BEHAVIOR:
-- Royal, warm, refined, hospitable, and knowledgeable.
-- Answer user queries about brand history, ingredients, recipes, culinary pairings, health and Ayurvedic benefits (e.g., soaking almonds overnight, curcumin absorption with black pepper, walnut brain health), storage tips (airtight glass jars away from direct sunlight), and gifting ideas.
-- Use markdown formatting with clear headings, bullet points, and bold text for readability.
-- When recommending items, mention their authentic Araj names and pack sizes.
-- Keep answers concise, helpful, and inviting.
-`;
+  heritage: `You are the "Araj Heritage Mill Chronicler & Quality Assayer" for ARAJ DRY FRUITS & SPICES.
+Heritage: Founded in 1985 in Agra, Uttar Pradesh by the Kaushal family. Over 39 years of uncompromising artisanal purity.
+Address: 11/48-E, Near Apsara Talkies, Hathras Road, Naraich, Agra-282006 (U.P.), India.
+WhatsApp / Helpline: +91 99171 04448
+Focus: Explain the traditional cold stone-milling process where spices are pulverized strictly below 32°C to prevent volatilization of essential aromatic oils (pinene, cineole, curcuminoids). Highlight 0% starch adulteration, 0% artificial colorings, and multi-barrier nitrogen flushing.
+ONLY refer to ARAJ's authentic product line.`,
+
+  concierge: `You are the "Araj Royal Concierge & Order Specialist".
+Support customers with:
+- Orders & Logistics: Dispatched within 24 hours from Agra; Pan-India express delivery in 3-5 business days.
+- Free Shipping: Complimentary on all orders over ₹999.
+- Payment Options: Cash on Delivery (COD), UPI (Google Pay, PhonePe, Paytm, BHIM), Credit/Debit Cards, Net Banking.
+- Custom & Corporate Gifting: Royal Shahi Treat Box (₹825) and bespoke corporate bulk orders (call/WhatsApp +91 99171 04448).
+- Return Policy: 100% replacement guarantee if freshness seal is compromised.
+Be courteous, concise, and helpful.`
+};
+
+// Default system instruction
+const BRAND_SYSTEM_INSTRUCTION = ROLE_SYSTEM_INSTRUCTIONS.sommelier;
 
 // Helper fallback responses if Gemini key is not configured or in case of transient API error
 function generateFallbackResponse(userPrompt: string): string {
@@ -169,54 +190,71 @@ Please feel free to ask any question about our pure dry fruits and heritage spic
 // API Route for AI Chatbot
 app.post('/api/chat', async (req, res) => {
   try {
-    const { messages, userPrompt } = req.body;
+    const { messages, userPrompt, model: requestedModel, role: requestedRole } = req.body;
     const promptText = userPrompt || (messages && messages.length > 0 ? messages[messages.length - 1].content : '');
 
     if (!promptText || typeof promptText !== 'string' || !promptText.trim()) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
+    // Allowed models: gemini-3.8-flash (default), gemini-3.5-flash, gemini-3.1-flash-lite, gemini-3.1-pro-preview
+    const allowedModels = [
+      'gemini-3.8-flash',
+      'gemini-3.5-flash',
+      'gemini-3.1-flash-lite',
+      'gemini-3.1-pro-preview',
+    ];
+    const targetModel = allowedModels.includes(requestedModel) ? requestedModel : 'gemini-3.8-flash';
+
+    // Pick system instruction based on role
+    const activeSystemInstruction =
+      (requestedRole && ROLE_SYSTEM_INSTRUCTIONS[requestedRole]) || BRAND_SYSTEM_INSTRUCTION;
+
     const ai = getGeminiClient();
 
-    // If Gemini client is initialized and key is present, invoke Gemini 3.8 Flash
+    // If Gemini client is initialized and key is present, invoke selected Gemini model
     if (ai) {
       try {
         const contents: any[] = [];
         
         if (Array.isArray(messages) && messages.length > 0) {
-          // Format conversation history for Gemini
-          for (const msg of messages.slice(-6)) {
+          // Format multi-turn conversation history for Gemini (keep up to 16 turns)
+          const validHistory = messages.slice(-16).filter(
+            (m) => m && typeof m.content === 'string' && m.content.trim()
+          );
+
+          for (const msg of validHistory) {
             contents.push({
               role: msg.role === 'assistant' ? 'model' : 'user',
-              parts: [{ text: msg.content }],
+              parts: [{ text: msg.content.trim() }],
             });
           }
         } else {
           contents.push({
             role: 'user',
-            parts: [{ text: promptText }],
+            parts: [{ text: promptText.trim() }],
           });
         }
 
         const geminiPromise = ai.models.generateContent({
-          model: 'gemini-3.8-flash',
+          model: targetModel,
           contents,
           config: {
-            systemInstruction: BRAND_SYSTEM_INSTRUCTION,
+            systemInstruction: activeSystemInstruction,
             temperature: 0.7,
             maxOutputTokens: 1000,
           },
         });
 
-        // 6-second timeout race to prevent hanging
+        // 25-second timeout race to handle deep reasoning and network latency safely
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Gemini API timeout')), 6000)
+          setTimeout(() => reject(new Error('Gemini API timeout')), 25000)
         );
 
         const response: any = await Promise.race([geminiPromise, timeoutPromise]);
 
         const replyText = response.text || generateFallbackResponse(promptText);
-        return res.json({ reply: replyText, source: 'gemini' });
+        return res.json({ reply: replyText, source: 'gemini', model: targetModel });
       } catch (geminiError: any) {
         console.warn('Gemini API call failed, using high-fidelity brand knowledge fallback:', geminiError?.message);
         const replyText = generateFallbackResponse(promptText);
@@ -230,6 +268,232 @@ app.post('/api/chat', async (req, res) => {
   } catch (error: any) {
     console.error('Error in /api/chat route:', error);
     return res.status(500).json({ error: 'Internal server error', details: error?.message });
+  }
+});
+
+// ==========================================
+// ARAJ SOVEREIGN CUSTOMER DATABASE API
+// ==========================================
+
+// 1. Sync or Upsert Customer Profile (called on Google auth, login, or profile changes)
+app.post('/api/customer/sync', (req, res) => {
+  try {
+    const { id, email, name, phone, address, city, state, pincode, provider, avatar } = req.body;
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Customer email is required' });
+    }
+
+    const customer = upsertCustomer({
+      id,
+      email,
+      name,
+      phone,
+      address,
+      city,
+      state,
+      pincode,
+      provider,
+      avatar,
+    });
+
+    return res.json({ success: true, customer });
+  } catch (err: any) {
+    console.error('Error in /api/customer/sync:', err);
+    return res.status(500).json({ error: 'Failed to sync customer details', details: err?.message });
+  }
+});
+
+// 2. Direct Customer Registration (Independent of Firebase)
+app.post('/api/customer/register', (req, res) => {
+  try {
+    const { email, password, name, phone, address } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    const result = registerCustomerDirect(email, password, name || '', phone, address);
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    return res.json({ success: true, customer: result.customer });
+  } catch (err: any) {
+    console.error('Error in /api/customer/register:', err);
+    return res.status(500).json({ error: 'Failed to register customer', details: err?.message });
+  }
+});
+
+// 3. Direct Customer Login (Independent of Firebase)
+app.post('/api/customer/login', (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const result = authenticateCustomerDirect(email, password);
+    if (!result.success) {
+      return res.status(401).json({ error: result.error });
+    }
+
+    return res.json({ success: true, customer: result.customer });
+  } catch (err: any) {
+    console.error('Error in /api/customer/login:', err);
+    return res.status(500).json({ error: 'Failed to authenticate customer', details: err?.message });
+  }
+});
+
+// 4. Inspect Customer Database Status & Architecture Metrics
+app.get('/api/customer/database-status', (req, res) => {
+  try {
+    const stats = getCustomerDatabaseStats();
+    return res.json(stats);
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Failed to inspect customer database' });
+  }
+});
+
+// 5. Export Full Customer Data (for customer backup)
+app.get('/api/customer/export', (req, res) => {
+  try {
+    const data = exportCustomerDatabase();
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename="araj_customer_database.json"');
+    return res.json(data);
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Failed to export customer database' });
+  }
+});
+
+// 6. Fetch Customer Details by Email or ID
+app.get('/api/customer/:identifier', (req, res) => {
+  try {
+    const customer = getCustomer(req.params.identifier);
+    if (!customer) {
+      return res.status(404).json({ error: 'Customer not found in database' });
+    }
+    return res.json({ customer });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Failed to retrieve customer', details: err?.message });
+  }
+});
+
+// 7. Update Customer Profile Details
+app.put('/api/customer/profile', (req, res) => {
+  try {
+    const { identifier, name, phone, address, city, state, pincode, notes } = req.body;
+    if (!identifier) {
+      return res.status(400).json({ error: 'Customer identifier is required' });
+    }
+
+    const updated = updateCustomer(identifier, {
+      name,
+      phone,
+      address,
+      city,
+      state,
+      pincode,
+      notes,
+    });
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Customer not found to update' });
+    }
+
+    return res.json({ success: true, customer: updated });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Failed to update customer profile', details: err?.message });
+  }
+});
+
+// 8. Save and Record Order in Customer Database
+app.post('/api/orders', (req, res) => {
+  try {
+    const orderData = req.body;
+    if (!orderData || !orderData.items || !orderData.customer) {
+      return res.status(400).json({ error: 'Valid order data and customer details are required' });
+    }
+
+    const savedOrder = saveOrderToDatabase(orderData);
+    return res.json({ success: true, order: savedOrder });
+  } catch (err: any) {
+    console.error('Error in /api/orders:', err);
+    return res.status(500).json({ error: 'Failed to save order in database', details: err?.message });
+  }
+});
+
+// 9. Get Orders for Customer
+app.get('/api/customer/orders/:identifier', (req, res) => {
+  try {
+    const orders = getOrdersForCustomer(req.params.identifier);
+    return res.json({ orders });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Failed to fetch customer orders', details: err?.message });
+  }
+});
+
+// 10. Submit B2B Distributor Inquiry to Database
+app.post('/api/distributor-inquiries', (req, res) => {
+  try {
+    const inquiryData = req.body;
+    if (!inquiryData || !inquiryData.fullName || !inquiryData.phone) {
+      return res.status(400).json({ error: 'Name and phone number are required' });
+    }
+
+    const savedInquiry = saveDistributorInquiryToDatabase(inquiryData);
+    return res.json({ success: true, inquiry: savedInquiry });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Failed to save inquiry', details: err?.message });
+  }
+});
+
+// 11. Update Product Image (e.g. For uploading exact Peri Peri Masala box packaging image)
+app.post('/api/admin/update-product-image', (req, res) => {
+  try {
+    const { productId, imageBase64, filename } = req.body;
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+      return res.status(400).json({ error: 'Image base64 data is required' });
+    }
+
+    // Clean base64 header if present
+    const base64Clean = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Clean, 'base64');
+
+    const targetFileName = filename || 'peri-peri-masala.png';
+    const targetDir = path.join(process.cwd(), 'public', 'images', 'products-spices');
+    const distTargetDir = path.join(process.cwd(), 'dist', 'images', 'products-spices');
+
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+    if (!fs.existsSync(distTargetDir)) {
+      fs.mkdirSync(distTargetDir, { recursive: true });
+    }
+
+    const publicFilePath = path.join(targetDir, targetFileName);
+    const distFilePath = path.join(distTargetDir, targetFileName);
+
+    fs.writeFileSync(publicFilePath, buffer);
+    try {
+      fs.writeFileSync(distFilePath, buffer);
+    } catch {
+      // dist may not exist yet in pure dev mode
+    }
+
+    console.log(`Successfully updated product image for ${productId || targetFileName}: ${publicFilePath} (${buffer.length} bytes)`);
+
+    return res.json({
+      success: true,
+      imagePath: `/images/products-spices/${targetFileName}?t=${Date.now()}`,
+      bytes: buffer.length,
+      filename: targetFileName,
+    });
+  } catch (err: any) {
+    console.error('Error updating product image:', err);
+    return res.status(500).json({ error: 'Failed to save product image', details: err?.message });
   }
 });
 

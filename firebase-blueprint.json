@@ -44,12 +44,106 @@
         }
       },
       "required": ["uid", "email"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer order with real-time delivery status tracking for ARAJ Dry Fruits & Spices",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique Order ID (e.g. ARAJ-123456)"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth User UID if logged in"
+        },
+        "customerEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Customer contact email"
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Customer recipient name"
+        },
+        "customerPhone": {
+          "type": "string",
+          "description": "Customer phone number"
+        },
+        "shippingAddress": {
+          "type": "string",
+          "description": "Delivery address"
+        },
+        "city": {
+          "type": "string",
+          "description": "Delivery city"
+        },
+        "state": {
+          "type": "string",
+          "description": "Delivery state"
+        },
+        "pincode": {
+          "type": "string",
+          "description": "Postal pincode"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Confirmed", "Processing", "Dispatched", "Out for Delivery", "Delivered"],
+          "description": "Current real-time delivery progress status"
+        },
+        "carrier": {
+          "type": "string",
+          "description": "Express logistics carrier partner name"
+        },
+        "trackingNumber": {
+          "type": "string",
+          "description": "Airway bill (AWB) tracking number"
+        },
+        "estimatedDelivery": {
+          "type": "string",
+          "description": "Estimated delivery window or date"
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "Items subtotal amount in INR"
+        },
+        "discount": {
+          "type": "number",
+          "description": "Discount applied in INR"
+        },
+        "shipping": {
+          "type": "number",
+          "description": "Shipping fee in INR"
+        },
+        "total": {
+          "type": "number",
+          "description": "Total order amount in INR"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Human readable or ISO creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of status update"
+        }
+      },
+      "required": ["id", "status", "total"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "UserProfile",
       "description": "User profile document isolated to the authenticated owner"
+    },
+    "/users/{userId}/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders associated with the authenticated customer for real-time status tracking"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Direct order lookup document for real-time delivery tracking by order ID"
     }
   }
 }

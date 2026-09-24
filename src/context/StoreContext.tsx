@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
-import { Product, CartItem, Order, CustomerInfo, DistributorInquiry, UserProfile } from '../types';
+import { Product, CartItem, Order, CustomerInfo, DistributorInquiry, UserProfile, OrderStatus } from '../types';
 import { PRODUCTS } from '../data/products';
 import { playLuxuryChime } from '../utils/sound';
 import { 
@@ -13,8 +13,27 @@ import {
   updateProfile as fbUpdateProfile, 
   onAuthStateChanged,
   syncUserProfile,
-  fetchUserProfile
+  fetchUserProfile,
+  saveOrderToFirestore,
+  subscribeToUserOrders,
+  fetchOrderFromFirestore,
+  updateOrderStatusInFirestore,
+  buildDefaultStatusTimeline
 } from '../lib/firebase';
+import {
+  syncCustomerToDatabase,
+  fetchCustomerFromDatabase,
+  updateCustomerInDatabase,
+  registerCustomerDirect,
+  loginCustomerDirect,
+  saveOrderToDatabase,
+  fetchCustomerOrdersFromDatabase,
+  saveDistributorInquiryToDatabase,
+  getCustomerDatabaseStatus,
+  getLocalCustomer,
+  saveLocalCustomer,
+  CustomerDbStatus,
+} from '../services/customerDb';
 
 interface StoreContextType {
   products: Product[];
@@ -23,12 +42,15 @@ interface StoreContextType {
   orders: Order[];
   user: User | null;
   userProfile: UserProfile | null;
+  dbStatus: CustomerDbStatus | null;
   isAuthLoading: boolean;
   authError: string | null;
   clearAuthError: () => void;
   loginWithGoogle: () => Promise<boolean>;
   loginWithEmail: (email: string, password: string) => Promise<boolean>;
   registerWithEmail: (email: string, password: string, displayName: string) => Promise<boolean>;
+  loginWithCustomerDb: (email: string, password: string) => Promise<boolean>;
+  registerWithCustomerDb: (email: string, password: string, name: string, phone?: string, address?: string) => Promise<boolean>;
   logout: () => Promise<void>;
   updateCustomerProfile: (data: { phone?: string; address?: string; city?: string; pincode?: string; displayName?: string }) => Promise<void>;
   isCartOpen: boolean;
@@ -56,6 +78,7 @@ interface StoreContextType {
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: string) => boolean;
   placeOrder: (customer: CustomerInfo) => Order;
+  updateProductImage: (productId: string, newImageUrl: string) => void;
   setActiveCategory: (cat: string) => void;
   setSearchQuery: (query: string) => void;
   cartCount: number;
@@ -86,12 +109,26 @@ interface StoreContextType {
   lastOrder: Order | null;
   toastMessage: string | null;
   showToast: (msg: string) => void;
+  updateOrderStatus: (orderId: string, status: OrderStatus, note?: string) => Promise<boolean>;
+  fetchOrderLive: (orderId: string) => Promise<Order | null>;
+  isFirestoreSyncing: boolean;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [products] = useState<Product[]>(PRODUCTS);
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const customImages = localStorage.getItem('araj_custom_product_images');
+      if (customImages) {
+        const map: Record<string, string> = JSON.parse(customImages);
+        return PRODUCTS.map(p => map[p.id] ? { ...p, image: map[p.id] } : p);
+      }
+    } catch (e) {
+      console.error('Failed to load custom product images', e);
+    }
+    return PRODUCTS;
+  });
   
   // Persistent Cart state
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -139,10 +176,39 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isFirestoreSyncing, setIsFirestoreSyncing] = useState<boolean>(false);
+
+  // Sovereign Customer Database Engine State
+  const [dbStatus, setDbStatus] = useState<CustomerDbStatus | null>(null);
+
+  // Load initial Customer Database Status and local cached profile
+  useEffect(() => {
+    getCustomerDatabaseStatus().then((status) => {
+      if (status) setDbStatus(status);
+    });
+
+    const cached = getLocalCustomer();
+    if (cached) {
+      setUserProfile(cached);
+      // Fetch fresh orders for this customer from database
+      fetchCustomerOrdersFromDatabase(cached.email).then((dbOrders) => {
+        if (dbOrders && dbOrders.length > 0) {
+          setOrders((prev) => {
+            const ids = new Set(prev.map((o) => o.id));
+            const merged = [...prev];
+            dbOrders.forEach((o) => {
+              if (!ids.has(o.id)) merged.push(o);
+            });
+            return merged;
+          });
+        }
+      });
+    }
+  }, []);
 
   // Firebase Auth State
   const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => getLocalCustomer());
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -152,18 +218,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setUser(currentUser);
       if (currentUser) {
         try {
-          const profile = await fetchUserProfile(currentUser.uid);
+          const profile = await fetchUserProfile(currentUser.uid || currentUser.email || '');
           if (profile) {
             setUserProfile(profile);
+            saveLocalCustomer(profile);
           } else {
             const synced = await syncUserProfile(currentUser);
-            setUserProfile(synced);
+            if (synced) {
+              setUserProfile(synced);
+              saveLocalCustomer(synced);
+            }
           }
         } catch (err) {
           console.error('Failed to load profile on auth change:', err);
         }
-      } else {
-        setUserProfile(null);
       }
       setIsAuthLoading(false);
     });
@@ -171,16 +239,43 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => unsubscribe();
   }, []);
 
+  // Listen to Firestore orders in real-time when authenticated patron is logged in
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    setIsFirestoreSyncing(true);
+    const unsubscribe = subscribeToUserOrders(user.uid, (firestoreOrders) => {
+      setIsFirestoreSyncing(false);
+      if (firestoreOrders && firestoreOrders.length > 0) {
+        setOrders((prev) => {
+          const map = new Map<string, Order>();
+          // Put existing local/cached orders
+          prev.forEach((o) => map.set(o.id, o));
+          // Overlay Firestore live orders with real-time delivery status & timeline
+          firestoreOrders.forEach((fo) => map.set(fo.id, fo));
+          return Array.from(map.values()).sort((a, b) => {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user?.uid]);
+
   const clearAuthError = () => setAuthError(null);
 
-  // Gmail / Google Login & Registration
+  // Gmail / Google Login & Registration (Customer details stored in Sovereign Customer Base)
   const loginWithGoogle = async (): Promise<boolean> => {
     setIsAuthLoading(true);
     setAuthError(null);
     try {
       const res = await signInWithPopup(auth, googleProvider);
       const profile = await syncUserProfile(res.user);
-      if (profile) setUserProfile(profile);
+      if (profile) {
+        setUserProfile(profile);
+        saveLocalCustomer(profile);
+      }
       playLuxuryChime('success');
       showToast(`Welcome, ${res.user.displayName || res.user.email}!`);
       return true;
@@ -209,20 +304,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const res = await signInWithEmailAndPassword(auth, email.trim(), pass);
       const profile = await syncUserProfile(res.user);
-      if (profile) setUserProfile(profile);
+      if (profile) {
+        setUserProfile(profile);
+        saveLocalCustomer(profile);
+      }
       playLuxuryChime('success');
       showToast(`Welcome back, ${res.user.displayName || res.user.email}!`);
       return true;
     } catch (err: any) {
-      console.error('Email Login Error:', err);
-      let msg = 'Failed to sign in. Please verify your email and password.';
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        msg = 'Incorrect email or password. Please try again or sign up.';
-      } else if (err.code === 'auth/invalid-email') {
-        msg = 'Please enter a valid email address.';
-      } else if (err.message) {
-        msg = err.message;
+      console.error('Email Login Error, falling back to direct customer database:', err);
+      // Fallback to Sovereign Customer Database
+      const direct = await loginCustomerDirect(email.trim(), pass);
+      if (direct.success && direct.customer) {
+        setUserProfile(direct.customer);
+        saveLocalCustomer(direct.customer);
+        playLuxuryChime('success');
+        showToast(`Welcome back, ${direct.customer.displayName}!`);
+        return true;
       }
+      let msg = direct.error || 'Failed to sign in. Please verify your email and password.';
       setAuthError(msg);
       showToast(msg);
       return false;
@@ -231,7 +331,84 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Email / Password Registration
+  // Direct Customer Registration (Independent of Firebase)
+  const registerWithCustomerDb = async (
+    email: string,
+    pass: string,
+    name: string,
+    phone?: string,
+    address?: string
+  ): Promise<boolean> => {
+    setIsAuthLoading(true);
+    setAuthError(null);
+    try {
+      const res = await registerCustomerDirect({
+        email: email.trim(),
+        password: pass,
+        name: name.trim(),
+        phone,
+        address,
+      });
+
+      if (res.success && res.customer) {
+        setUserProfile(res.customer);
+        saveLocalCustomer(res.customer);
+        playLuxuryChime('success');
+        showToast(`Welcome to ARAJ, ${res.customer.displayName}! Account saved in Sovereign Database.`);
+        return true;
+      } else {
+        const msg = res.error || 'Could not register customer';
+        setAuthError(msg);
+        showToast(msg);
+        return false;
+      }
+    } catch (err: any) {
+      setAuthError(err.message || 'Registration error');
+      return false;
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  // Direct Customer Login (Independent of Firebase)
+  const loginWithCustomerDb = async (email: string, pass: string): Promise<boolean> => {
+    setIsAuthLoading(true);
+    setAuthError(null);
+    try {
+      const res = await loginCustomerDirect(email.trim(), pass);
+      if (res.success && res.customer) {
+        setUserProfile(res.customer);
+        saveLocalCustomer(res.customer);
+        fetchCustomerOrdersFromDatabase(res.customer.email).then((dbOrders) => {
+          if (dbOrders && dbOrders.length > 0) {
+            setOrders((prev) => {
+              const ids = new Set(prev.map((o) => o.id));
+              const merged = [...prev];
+              dbOrders.forEach((o) => {
+                if (!ids.has(o.id)) merged.push(o);
+              });
+              return merged;
+            });
+          }
+        });
+        playLuxuryChime('success');
+        showToast(`Welcome back, ${res.customer.displayName}!`);
+        return true;
+      } else {
+        const msg = res.error || 'Invalid email or password';
+        setAuthError(msg);
+        showToast(msg);
+        return false;
+      }
+    } catch (err: any) {
+      setAuthError(err.message || 'Login error');
+      return false;
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  // Email / Password Registration (with Customer Database Sync)
   const registerWithEmail = async (email: string, pass: string, displayName: string): Promise<boolean> => {
     setIsAuthLoading(true);
     setAuthError(null);
@@ -241,25 +418,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         await fbUpdateProfile(res.user, { displayName: displayName.trim() });
       }
       const profile = await syncUserProfile(res.user);
-      if (profile) setUserProfile(profile);
+      if (profile) {
+        setUserProfile(profile);
+        saveLocalCustomer(profile);
+      }
       playLuxuryChime('success');
       showToast(`Account created! Welcome to ARAJ, ${displayName.trim() || res.user.email}!`);
       return true;
     } catch (err: any) {
-      console.error('Email Registration Error:', err);
-      let msg = 'Could not complete registration.';
-      if (err.code === 'auth/email-already-in-use') {
-        msg = 'An account with this email address already exists. Please login instead.';
-      } else if (err.code === 'auth/weak-password') {
-        msg = 'Password should be at least 6 characters.';
-      } else if (err.code === 'auth/invalid-email') {
-        msg = 'Please provide a valid email address.';
-      } else if (err.message) {
-        msg = err.message;
-      }
-      setAuthError(msg);
-      showToast(msg);
-      return false;
+      console.warn('Firebase registration error, registering directly in Sovereign Database:', err);
+      // Seamlessly fallback to direct registration in ARAJ Database
+      return registerWithCustomerDb(email, pass, displayName);
     } finally {
       setIsAuthLoading(false);
     }
@@ -268,9 +437,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Logout
   const logout = async () => {
     try {
-      await fbSignOut(auth);
+      if (auth.currentUser) {
+        await fbSignOut(auth);
+      }
       setUser(null);
       setUserProfile(null);
+      saveLocalCustomer(null);
       playLuxuryChime('click');
       showToast('Signed out successfully.');
     } catch (err) {
@@ -278,17 +450,36 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Update Customer Profile Details in Firestore
-  const updateCustomerProfile = async (data: { phone?: string; address?: string; city?: string; pincode?: string; displayName?: string }) => {
-    if (!user) return;
+  // Update Customer Profile Details in Sovereign Customer Database
+  const updateCustomerProfile = async (data: {
+    phone?: string;
+    address?: string;
+    city?: string;
+    pincode?: string;
+    displayName?: string;
+  }) => {
+    const identifier = userProfile?.email || user?.email || userProfile?.uid || user?.uid;
+    if (!identifier) return;
+
     try {
-      if (data.displayName && data.displayName !== user.displayName) {
+      if (user && data.displayName && data.displayName !== user.displayName) {
         await fbUpdateProfile(user, { displayName: data.displayName });
       }
-      const updated = await syncUserProfile(user, { phone: data.phone, address: data.address });
+
+      const updated = await updateCustomerInDatabase({
+        identifier,
+        name: data.displayName,
+        phone: data.phone,
+        address: data.address,
+        city: data.city,
+        pincode: data.pincode,
+      });
+
       if (updated) {
         setUserProfile(updated);
-        showToast('Profile updated successfully!');
+        saveLocalCustomer(updated);
+        playLuxuryChime('success');
+        showToast('Profile updated in Sovereign Customer Database!');
       }
     } catch (err) {
       console.error('Update profile error:', err);
@@ -393,11 +584,30 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const list = existing ? JSON.parse(existing) : [];
       list.push(newInquiry);
       localStorage.setItem('araj_distributor_inquiries', JSON.stringify(list));
+      // Save directly to ARAJ Sovereign Customer Database
+      saveDistributorInquiryToDatabase(inquiryData);
     } catch (e) {
       console.error(e);
     }
     playLuxuryChime('success');
     showToast('Inquiry submitted! Our Agra office will connect shortly.');
+  };
+
+  const updateProductImage = (productId: string, newImageUrl: string) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, image: newImageUrl } : p))
+    );
+    setSelectedProduct((prev) =>
+      prev && prev.id === productId ? { ...prev, image: newImageUrl } : prev
+    );
+    try {
+      const customImages = localStorage.getItem('araj_custom_product_images');
+      const map = customImages ? JSON.parse(customImages) : {};
+      map[productId] = newImageUrl;
+      localStorage.setItem('araj_custom_product_images', JSON.stringify(map));
+    } catch (e) {
+      console.error('Failed to store custom product image', e);
+    }
   };
 
   const openProductDetail = (product: Product) => {
@@ -479,29 +689,86 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const placeOrder = (customer: CustomerInfo): Order => {
     const shipping = cartTotal >= 499 || cartTotal === 0 ? 0 : 50;
     const finalTotal = cartTotal + shipping;
+    const createdAtStr = new Date().toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    const orderId = `ARAJ-${Date.now().toString().slice(-6)}`;
+    const trackingNum = `AGR-BLU-${Date.now().toString().slice(-6)}`;
     
     const newOrder: Order = {
-      id: `ARAJ-${Date.now().toString().slice(-6)}`,
+      id: orderId,
       items: [...cart],
       subtotal: cartSubtotal,
       discount: cartDiscount,
       shipping,
       total: finalTotal,
       customer,
-      createdAt: new Date().toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      createdAt: createdAtStr,
       status: 'Confirmed',
+      carrier: 'Blue Dart Express',
+      trackingNumber: trackingNum,
+      estimatedDelivery: '3-4 Business Days (Pan-India Express)',
+      statusTimeline: buildDefaultStatusTimeline('Confirmed', createdAtStr),
+      userId: user?.uid,
+      updatedAt: new Date().toISOString(),
     };
 
     setOrders((prev) => [newOrder, ...prev]);
     setLastOrder(newOrder);
+
+    // Persist to Firestore for real-time delivery status tracking
+    saveOrderToFirestore(newOrder, user?.uid);
+
+    // Persist order and customer details into Sovereign Customer Database
+    saveOrderToDatabase(newOrder);
     clearCart();
     return newOrder;
+  };
+
+  const updateOrderStatus = async (orderId: string, status: OrderStatus, note?: string): Promise<boolean> => {
+    setIsFirestoreSyncing(true);
+    const success = await updateOrderStatusInFirestore(orderId, status, note, user?.uid);
+    if (success) {
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                status,
+                statusTimeline: buildDefaultStatusTimeline(status, o.createdAt),
+                updatedAt: new Date().toISOString(),
+              }
+            : o
+        )
+      );
+      playLuxuryChime('success');
+      showToast(`Order status updated to ${status}`);
+    }
+    setIsFirestoreSyncing(false);
+    return success;
+  };
+
+  const fetchOrderLive = async (orderId: string): Promise<Order | null> => {
+    setIsFirestoreSyncing(true);
+    const live = await fetchOrderFromFirestore(orderId);
+    if (live) {
+      // Sync into orders state if not already there
+      setOrders((prev) => {
+        const idx = prev.findIndex((o) => o.id === live.id);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = live;
+          return updated;
+        }
+        return [live, ...prev];
+      });
+    }
+    setIsFirestoreSyncing(false);
+    return live;
   };
 
   return (
@@ -513,12 +780,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         orders,
         user,
         userProfile,
+        dbStatus,
         isAuthLoading,
         authError,
         clearAuthError,
         loginWithGoogle,
         loginWithEmail,
         registerWithEmail,
+        loginWithCustomerDb,
+        registerWithCustomerDb,
         logout,
         updateCustomerProfile,
         isCartOpen,
@@ -567,6 +837,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         toggleWishlist,
         isInWishlist,
         placeOrder,
+        updateProductImage,
         setActiveCategory,
         setSearchQuery,
         cartCount,
@@ -576,6 +847,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         lastOrder,
         toastMessage,
         showToast,
+        updateOrderStatus,
+        fetchOrderLive,
+        isFirestoreSyncing,
       }}
     >
       {children}

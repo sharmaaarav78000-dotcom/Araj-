@@ -11,6 +11,20 @@ service cloud.firestore {
     // User profile document: strictly restricted to owner
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Subcollection for user orders
+      match /orders/{orderId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Direct order lookup collection for real-time delivery status tracking
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
     }
   }
 }
+

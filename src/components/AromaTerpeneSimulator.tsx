@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Wind, Flame, Sparkles, Droplets, CheckCircle, Activity, Play } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Wind, Flame, Sparkles, Droplets, CheckCircle, Activity } from 'lucide-react';
 import { playLuxuryChime } from '../utils/sound';
-import { triggerParticleBurst } from '../utils/effects';
 
 interface SpiceProfile {
   id: string;
@@ -75,18 +74,7 @@ const SPICE_PROFILES: SpiceProfile[] = [
 
 export const AromaTerpeneSimulator: React.FC = () => {
   const [activeIdx, setActiveIdx] = useState(0);
-  const [isDispersing, setIsDispersing] = useState(false);
   const activeSpice = SPICE_PROFILES[activeIdx];
-
-  const handleTestAroma = (e: React.MouseEvent) => {
-    setIsDispersing(true);
-    playLuxuryChime('aroma');
-    triggerParticleBurst(e, { type: 'spice' });
-
-    setTimeout(() => {
-      setIsDispersing(false);
-    }, 2400);
-  };
 
   const handleSelectSpice = (idx: number) => {
     setActiveIdx(idx);
@@ -117,7 +105,7 @@ export const AromaTerpeneSimulator: React.FC = () => {
               </span>
             </div>
             <h3 className="font-serif text-lg sm:text-2xl font-bold text-[#FAF7EE]">
-              Cryogenic Volatile Oil & Aroma Simulator
+              Cryogenic Volatile Oil
             </h3>
           </div>
         </div>
@@ -130,8 +118,8 @@ export const AromaTerpeneSimulator: React.FC = () => {
               onClick={() => handleSelectSpice(idx)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                 activeIdx === idx
-                  ? 'bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] shadow-md font-bold'
-                  : 'text-[#A6A295] hover:text-[#FAF7EE] hover:bg-white/5'
+                  ? 'glass-btn-gold text-[#0A0A0E] font-bold'
+                  : 'glass-btn-pill text-[#A6A295] hover:text-[#FAF7EE]'
               }`}
             >
               {spice.name.split(' ')[0]}
@@ -146,41 +134,14 @@ export const AromaTerpeneSimulator: React.FC = () => {
         {/* Left Interactive Aroma Crucible & Dispersion Ring Effect */}
         <div className="lg:col-span-5 flex flex-col items-center justify-center text-center relative py-6 overflow-hidden">
           <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center">
-            
-            {/* Billowing fragrant ripple waves when dispersing */}
-            <AnimatePresence>
-              {isDispersing && (
-                <>
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0.8 }}
-                    animate={{ scale: 2.2, opacity: 0 }}
-                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeOut' }}
-                    className="absolute inset-0 rounded-full border-2 border-[#D4AF37] pointer-events-none"
-                    style={{ borderColor: activeSpice.colorAccent }}
-                  />
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0.8 }}
-                    animate={{ scale: 2.6, opacity: 0 }}
-                    transition={{ duration: 1.8, delay: 0.45, repeat: Infinity, ease: 'easeOut' }}
-                    className="absolute inset-0 rounded-full border border-[#FAF7EE] pointer-events-none"
-                  />
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0.8 }}
-                    animate={{ scale: 3.0, opacity: 0 }}
-                    transition={{ duration: 1.8, delay: 0.9, repeat: Infinity, ease: 'easeOut' }}
-                    className="absolute inset-0 rounded-full border border-[#D4AF37]/50 pointer-events-none"
-                  />
-                </>
-              )}
-            </AnimatePresence>
+            {/* Subtle Ambient Pulse Rings */}
+            <div
+              className="absolute inset-2 rounded-full border border-white/10 pointer-events-none animate-pulse"
+              style={{ borderColor: `${activeSpice.colorAccent}30` }}
+            />
 
             {/* Central Crucible Disc */}
             <motion.div
-              animate={{
-                scale: isDispersing ? [1, 1.06, 1] : 1,
-                rotate: isDispersing ? [0, 4, -4, 0] : 0,
-              }}
-              transition={{ duration: 1.5, repeat: isDispersing ? Infinity : 0 }}
               className="w-36 h-36 sm:w-44 sm:h-44 rounded-full glass-card-futuristic border-2 flex flex-col items-center justify-center p-4 relative z-10 shadow-[0_0_40px_rgba(0,0,0,0.8)]"
               style={{ borderColor: activeSpice.colorAccent }}
             >
@@ -202,17 +163,11 @@ export const AromaTerpeneSimulator: React.FC = () => {
             </motion.div>
           </div>
 
-          {/* Test Aroma Emission Button */}
-          <button
-            onClick={handleTestAroma}
-            className="mt-6 flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-[#D4AF37] via-[#E6CA65] to-[#C59F2D] text-[#0A0A0E] font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-[0_4px_20px_rgba(212,175,55,0.4)] hover:shadow-[0_6px_25px_rgba(212,175,55,0.6)] hover:scale-105 active:scale-95 transition-all cursor-pointer max-w-full"
-          >
-            <Play className={`w-3.5 h-3.5 fill-current shrink-0 ${isDispersing ? 'animate-spin' : ''}`} />
-            <span className="truncate">{isDispersing ? 'DISPERSING AROMAS...' : 'TEST AROMA EMISSION'}</span>
-          </button>
-          <span className="text-[10px] text-[#88847A] mt-2">
-            Click to simulate cryogenic terpene release
-          </span>
+          {/* Cryogenic Volatile Oil Indicator Pill */}
+          <div className="mt-4 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono text-[#D4AF37]">
+            <Droplets className="w-3.5 h-3.5 text-[#F5DE88]" />
+            <span>Cryo-Milled at -196°C to lock volatile oils</span>
+          </div>
         </div>
 
         {/* Right Live Terpene & Chromatography Meters */}

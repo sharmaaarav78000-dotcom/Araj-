@@ -17,10 +17,13 @@ export const CheckoutModal: React.FC = () => {
     user,
     userProfile,
     loginWithGoogle,
-    isAuthLoading
+    isAuthLoading,
+    showToast,
+    openAccount
   } = useStore();
 
   const [step, setStep] = useState<'shipping' | 'payment' | 'success'>('shipping');
+  const [formError, setFormError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -81,7 +84,7 @@ ${order.customer.notes ? `*Delivery Instructions:* ${order.customer.notes}` : ''
 ━━━━━━━━━━━━━━━━━━━━━
 _Order placed via official ARAJ website._`;
 
-    const targetPhone = '918979221409';
+    const targetPhone = '919917104448';
     return `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
   };
 
@@ -91,10 +94,13 @@ _Order placed via official ARAJ website._`;
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.address || !formData.pincode) {
-      alert('Please fill all required delivery details.');
+    if (!formData.name.trim() || !formData.phone.trim() || !formData.address.trim() || !formData.pincode.trim()) {
+      const errMsg = 'Please fill all required delivery details (Name, Phone, Address, PIN Code).';
+      setFormError(errMsg);
+      showToast(errMsg);
       return;
     }
+    setFormError(null);
     setStep('payment');
   };
 
@@ -109,14 +115,19 @@ _Order placed via official ARAJ website._`;
       setIsProcessing(false);
       setStep('success');
 
-      // Generate WhatsApp order message and URL
+      // Generate WhatsApp order message and URL for 9917104448
       const waLink = generateWhatsAppUrl(order);
       setWhatsAppUrl(waLink);
+      showToast('Order confirmed! Automatically redirecting to WhatsApp (+91 9917104448)...');
 
-      // Automatically redirect to WhatsApp phone number 8979221409 with order details
+      // Automatically redirect to WhatsApp at +91 9917104448 with order details
       setTimeout(() => {
-        window.location.href = waLink;
-      }, 1500);
+        try {
+          window.location.href = waLink;
+        } catch (err) {
+          console.warn('Auto redirect navigation warning:', err);
+        }
+      }, 1200);
     }, 1200);
   };
 
@@ -128,9 +139,10 @@ _Order placed via official ARAJ website._`;
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-6 overflow-y-auto">
+      <div key="checkout-modal-wrapper" className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-6 overflow-y-auto">
         {/* Backdrop */}
         <motion.div
+          key="checkout-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -140,6 +152,7 @@ _Order placed via official ARAJ website._`;
 
         {/* Modal Container */}
         <motion.div
+          key="checkout-container"
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -162,7 +175,7 @@ _Order placed via official ARAJ website._`;
 
             <button
               onClick={step === 'success' ? resetAndClose : closeCheckout}
-              className="p-2 rounded-full text-[#DFDACD] hover:text-white hover:bg-white/10 transition-colors"
+              className="p-2 rounded-full glass-btn-icon text-[#DFDACD] hover:text-white"
             >
               <X className="w-5 h-5" />
             </button>
@@ -490,29 +503,45 @@ _Order placed via official ARAJ website._`;
                   </div>
                 </div>
 
-                {/* WhatsApp Auto-Redirect Card */}
-                <div className="p-4 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/30 text-left space-y-2">
+                {/* WhatsApp Order Dispatch Card */}
+                <div className="p-4 rounded-2xl bg-[#25D366]/15 border border-[#25D366]/40 text-left space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-[#25D366] font-bold text-xs uppercase tracking-wider">
                       <MessageCircle className="w-4 h-4 animate-bounce" />
-                      <span>Redirecting to WhatsApp (+91 8979221409)...</span>
+                      <span>Automatically Redirecting to WhatsApp...</span>
                     </div>
-                    <span className="text-[11px] text-[#A6A295]">Auto-Sending Order</span>
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#25D366]/20 text-[#25D366] font-bold">
+                      +91 99171 04448
+                    </span>
                   </div>
                   <p className="text-xs text-[#E1DACB] leading-relaxed">
-                    Opening WhatsApp to send your complete order summary (items, prices, and delivery address) directly to <strong>8979221409</strong>.
+                    Order confirmed! We are automatically opening WhatsApp to send your complete order summary (Order ID, item list, total amount, and delivery address) to ARAJ Spices at <strong>+91 99171 04448</strong>.
                   </p>
+                  {/* Subtle animated bar */}
+                  <div className="w-full bg-black/40 h-1 rounded-full overflow-hidden">
+                    <div className="bg-[#25D366] h-full w-full animate-pulse" />
+                  </div>
                   {whatsAppUrl && (
-                    <a
-                      href={whatsAppUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-black font-bold text-xs transition-all shadow-md mt-1"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5" />
-                      <span>Open WhatsApp Chat Now</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
+                    <div className="pt-1 flex flex-col sm:flex-row sm:items-center gap-2">
+                      <a
+                        href={whatsAppUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => {
+                          try {
+                            window.location.href = whatsAppUrl;
+                          } catch {}
+                        }}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-black font-extrabold text-xs cursor-pointer shadow-lg hover:brightness-105 transition-all"
+                      >
+                        <MessageCircle className="w-4 h-4 fill-black text-[#25D366]" />
+                        <span>Open WhatsApp Chat (+91 99171 04448)</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                      <span className="text-[10px] text-[#A6A295]">
+                        Click if WhatsApp does not open automatically
+                      </span>
+                    </div>
                   )}
                 </div>
 
@@ -531,14 +560,14 @@ _Order placed via official ARAJ website._`;
                 <button
                   type="button"
                   onClick={closeCheckout}
-                  className="px-4 py-2.5 rounded-xl text-xs text-[#B8B4A8] hover:text-white transition-colors"
+                  className="px-4 py-2.5 rounded-xl glass-btn-secondary text-xs text-[#B8B4A8] hover:text-white cursor-pointer"
                 >
                   Return to Cart
                 </button>
                 <button
                   type="submit"
                   form="shipping-form"
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:brightness-110 shadow-lg"
+                  className="px-6 py-3 rounded-xl glass-btn-gold text-[#0A0A0E] font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer"
                 >
                   <span>Proceed to Payment</span>
                   <ArrowRight className="w-4 h-4" />
@@ -551,7 +580,7 @@ _Order placed via official ARAJ website._`;
                 <button
                   type="button"
                   onClick={() => setStep('shipping')}
-                  className="px-4 py-2.5 rounded-xl text-xs text-[#B8B4A8] hover:text-white flex items-center gap-1.5 transition-colors"
+                  className="px-4 py-2.5 rounded-xl glass-btn-secondary text-xs text-[#B8B4A8] hover:text-white flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back to Address</span>
@@ -560,7 +589,7 @@ _Order placed via official ARAJ website._`;
                   type="button"
                   disabled={isProcessing}
                   onClick={handlePlaceOrder}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:brightness-110 shadow-lg disabled:opacity-50"
+                  className="px-6 py-3 rounded-xl glass-btn-gold text-[#0A0A0E] font-bold text-xs uppercase tracking-wider flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   {isProcessing ? (
                     <span>Securing Order...</span>
@@ -575,13 +604,26 @@ _Order placed via official ARAJ website._`;
             )}
 
             {step === 'success' && (
-              <button
-                type="button"
-                onClick={resetAndClose}
-                className="w-full py-3.5 rounded-xl bg-[#D4AF37] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-lg"
-              >
-                Continue Shopping
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2.5 w-full">
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetAndClose();
+                    openAccount();
+                  }}
+                  className="flex-1 py-3.5 rounded-xl glass-btn-gold text-[#0A0A0E] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                >
+                  <Package className="w-4 h-4" />
+                  <span>Track Real-Time Status</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={resetAndClose}
+                  className="py-3.5 px-6 rounded-xl glass-btn-secondary text-[#DFDACD] hover:text-white font-medium text-xs uppercase tracking-wider cursor-pointer"
+                >
+                  Continue Shopping
+                </button>
+              </div>
             )}
           </div>
         </motion.div>

@@ -107,9 +107,10 @@ export const HamperBuilderModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      <div key="hamper-modal-wrapper" className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
         {/* Backdrop */}
         <motion.div
+          key="hamper-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -119,6 +120,7 @@ export const HamperBuilderModal: React.FC = () => {
 
         {/* Modal Window */}
         <motion.div
+          key="hamper-dialog"
           initial={{ opacity: 0, scale: 0.94, y: 25 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 25 }}
@@ -148,7 +150,7 @@ export const HamperBuilderModal: React.FC = () => {
 
             <button
               onClick={closeHamper}
-              className="p-2 rounded-full text-[#DFDACD] hover:text-white hover:bg-white/10 transition-colors"
+              className="p-2 rounded-full glass-btn-icon text-[#DFDACD] hover:text-white"
               aria-label="Close Hamper Architect"
             >
               <X className="w-5 h-5" />
@@ -213,7 +215,7 @@ export const HamperBuilderModal: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {slots.map((slot, index) => (
                   <div
-                    key={index}
+                    key={`hamper-chamber-slot-${index}`}
                     className={`relative p-4 rounded-2xl border transition-all flex flex-col items-center justify-center min-h-[160px] text-center ${
                       slot
                         ? 'bg-[#151522]/90 border-[#D4AF37]/40 shadow-inner'
@@ -353,14 +355,14 @@ export const HamperBuilderModal: React.FC = () => {
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <button
                 onClick={closeHamper}
-                className="flex-1 sm:flex-none px-4 py-3 rounded-xl glass-pill text-xs font-semibold text-[#DFDACD] hover:text-white transition-all"
+                className="flex-1 sm:flex-none px-4 py-3 rounded-xl glass-btn-secondary text-xs font-semibold text-[#DFDACD] hover:text-white cursor-pointer"
               >
                 Cancel
               </button>
 
               <button
                 onClick={handleAddHamperToBag}
-                className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C59F2D] text-[#0A0A0E] font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="flex-1 sm:flex-none px-6 py-3 rounded-xl glass-btn-gold text-[#0A0A0E] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>Add Bespoke Coffret to Bag</span>
